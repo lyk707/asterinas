@@ -29,6 +29,15 @@ let
   resolv_conf = pkgs.callPackage ./resolv_conf.nix { dnsServer = dnsServer; };
   # Whether the initramfs should include evtest, a common tool to debug input devices (`/dev/input/eventX`)
   is_evtest_included = false;
+  # Standard Linux `perf` for PMU guest acceptance (`perf stat` on hardware events).
+  # nixpkgs builds it natively for x86-64. The RISC-V initramfs is cross-built and
+  # nixpkgs does not cross-build this package, so a `perf` built on a riscv64
+  # machine is injected at `./perf-riscv64/perf`. See that directory's README,
+  # `tools/pmu/build_riscv_perf.sh`, and the acceptance steps in
+  # `docs/pmu/DESIGN_AND_ABI.md`.
+  riscv_perf_dir = ./perf-riscv64;
+  has_riscv_perf =
+    hostPlatform.isRiscV64 && builtins.pathExists (riscv_perf_dir + "/perf");
 
   all_pkgs = [
     busybox
@@ -39,8 +48,6 @@ let
   ++ lib.optionals (conformance != null) [ conformance.package ]
   ++ lib.optionals (regression != null) [ regression.package ]
   ++ lib.optionals is_evtest_included [ pkgs.evtest ]
-  # Standard Linux perf for PMU guest acceptance (perf stat on hardware events).
-  # x86_64 only: the RISC-V initramfs does not cross-build this package.
   ++ lib.optionals hostPlatform.isx86_64 [ pkgs.linuxPackages.perf ];
 in
 stdenvNoCC.mkDerivation {
@@ -56,6 +63,9 @@ stdenvNoCC.mkDerivation {
     cp -r ${busybox}/bin/* $out/bin/
     ${lib.optionalString hostPlatform.isx86_64 ''
       cp -r ${pkgs.linuxPackages.perf}/bin/* $out/bin/
+    ''}
+    ${lib.optionalString has_riscv_perf ''
+      install -Dm755 ${riscv_perf_dir}/perf $out/bin/perf
     ''}
     ${lib.optionalString is_evtest_included ''
       cp -r ${pkgs.evtest}/bin/* $out/bin/
