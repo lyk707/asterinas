@@ -1,0 +1,16 @@
+// Counting only. See README for target, size, privilege and zero-tail checks.
+struct perf_counting_attr = {
+    type = PERF_TYPE_HARDWARE,
+    config = PERF_COUNT_HW_CPU_CYCLES | PERF_COUNT_HW_INSTRUCTIONS,
+    sample_period = 0,
+    sample_type = 0,
+    read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING | PERF_FORMAT_ID,
+    inherit = 0,
+    pinned = 0,
+    exclusive = 0,
+    exclude_host = 0,
+    ..
+};
+
+// SCML cannot express a negative literal. The kernel requires group_fd == -1.
+perf_event_open(attr = <perf_counting_attr>, pid, cpu, group_fd = <INTEGER>, flags = PERF_FLAG_FD_CLOEXEC);

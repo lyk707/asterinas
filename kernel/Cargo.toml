@@ -23,6 +23,9 @@ coverage = ["aster-core/coverage"]
 cvm_guest = ["aster-core/cvm_guest"]
 pvh_boot = ["aster-core/pvh_boot"]
 riscv_sv39_mode = ["aster-core/riscv_sv39_mode"]
+pmu = ["aster-core/pmu"]
+# Compatibility alias only; runtime firmware/ISA validation cannot be bypassed.
+pmu_sbi_trusted = ["pmu", "aster-core/pmu_sbi_trusted"]
 
 [lints]
 workspace = true

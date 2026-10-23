@@ -36,6 +36,39 @@ Unsupported `who` flags:
 For more information,
 see [the man page](https://man7.org/linux/man-pages/man2/getrusage.2.html).
 
+### `perf_event_open`
+
+Available with the `pmu` feature and a supported PMU with privilege filtering.
+Without this feature, the syscall returns `EOPNOTSUPP`.
+
+```c
+{{#include perf_event_open.scml}}
+```
+
+Supports per-thread hardware cycles and instructions for `pid >= 0`,
+`cpu >= -1`, and `group_fd == -1`.
+SCML uses `<INTEGER>` for `group_fd` because its grammar cannot express negative
+literals; this does not imply support for other group descriptors.
+`CAP_PERFMON` or `CAP_SYS_ADMIN` is required, including for self-monitoring.
+The 64-byte attribute prefix is supported; larger structures require zero tails.
+Supported attribute bits are `disabled`, `exclude_user`, `exclude_kernel`,
+`exclude_hv`, `exclude_idle`, `enable_on_exec`, and `exclude_guest`.
+Idle tasks and guest/hypervisor execution are outside this per-thread scope.
+Excluding both user and kernel execution returns `EINVAL`.
+
+All eight non-group combinations of time-enabled, time-running, and ID fields
+are supported by `read`. The enable, disable, reset, and ID ioctls are supported.
+Reset preserves elapsed times. Time enabled excludes time off the target CPU
+context; counts remain readable after the target thread exits.
+
+Inheritance (including inheritance with enable-on-exec), pinned/exclusive events,
+host exclusion, sampling, groups, multiplexing, and system-wide events are
+unsupported. Use standard `perf stat --no-inherit -e cycles:u,instructions:u`.
+This measures the selected thread; descendants are not aggregated.
+
+For more information, see
+[the man page](https://man7.org/linux/man-pages/man2/perf_event_open.2.html).
+
 ### `getrandom`
 
 Supported functionality in SCML:

@@ -21,6 +21,7 @@
 #  - VIRTIOFS_SCRATCH_TAG: mount tag for the scratch virtio-fs device;
 #  - INITRAMFS: "on" or "off"; when "off", attach `rootfs.img` as an extra block device.
 #  - CONSOLE: "hvc0" to enable virtio console;
+#  - PMU_QEMU_CPU: optional CPU model/properties for normal x86 and RISC-V;
 #  - SMP: number of CPUs;
 #  - MEM: amount of memory, e.g. "8G";
 #  - VNC_PORT: VNC display number, default is "42" (TCP port 5942),
@@ -125,7 +126,7 @@ if [ "$1" = "riscv" ]; then
     fi
 
     QEMU_ARGS="\
-        -cpu rv64,svpbmt=true,zkr=true \
+        -cpu ${PMU_QEMU_CPU:-rv64,svpbmt=true,zkr=true} \
         -machine virt \
         -m ${MEM:-8G} \
         -smp ${SMP:-1} \
@@ -223,7 +224,7 @@ if [ "$1" = "tdx" ]; then
 fi
 
 COMMON_QEMU_ARGS="\
-    -cpu Icelake-Server,+x2apic,+vmx \
+    -cpu ${PMU_QEMU_CPU:-Icelake-Server,+x2apic,+vmx} \
     -smp ${SMP:-1} \
     -m ${MEM:-8G} \
     --no-reboot \

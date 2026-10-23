@@ -38,7 +38,10 @@ let
   ++ lib.optionals (benchmark != null) [ benchmark.package ]
   ++ lib.optionals (conformance != null) [ conformance.package ]
   ++ lib.optionals (regression != null) [ regression.package ]
-  ++ lib.optionals is_evtest_included [ pkgs.evtest ];
+  ++ lib.optionals is_evtest_included [ pkgs.evtest ]
+  # Standard Linux perf for PMU guest acceptance (perf stat on hardware events).
+  # x86_64 only: the RISC-V initramfs does not cross-build this package.
+  ++ lib.optionals hostPlatform.isx86_64 [ pkgs.linuxPackages.perf ];
 in
 stdenvNoCC.mkDerivation {
   name = "initramfs";
@@ -51,6 +54,9 @@ stdenvNoCC.mkDerivation {
     ln -sfn usr/lib $out/lib
     ln -sfn usr/lib64 $out/lib64
     cp -r ${busybox}/bin/* $out/bin/
+    ${lib.optionalString hostPlatform.isx86_64 ''
+      cp -r ${pkgs.linuxPackages.perf}/bin/* $out/bin/
+    ''}
     ${lib.optionalString is_evtest_included ''
       cp -r ${pkgs.evtest}/bin/* $out/bin/
     ''}

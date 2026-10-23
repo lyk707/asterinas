@@ -34,12 +34,16 @@ pub(in crate::arch) fn init() {
                 "CPU {} has no riscv,isa or riscv,isa-extensions property",
                 cpu_count - 1
             );
+            global_isa_extensions = IsaExtensions::empty();
             continue;
         };
 
         global_isa_extensions &= cpu_isa_extensions;
     }
 
+    if cpu_count == 0 {
+        global_isa_extensions = IsaExtensions::empty();
+    }
     crate::info!("Detected ISA extensions: {:?}", global_isa_extensions);
 
     GLOBAL_ISA_EXTENSIONS.call_once(|| global_isa_extensions);
@@ -227,6 +231,7 @@ define_isa_extensions! {
     ZVFBFWMA    = 96, "zvfbfwma",    "Vector BF16 widening mul-add";
     ZAAMO       = 97, "zaamo",       "Atomic memory operations";
     ZALRSC      = 98, "zalrsc",      "Load-reserved/store-conditional";
+    SMCNTRPMF   = 99, "smcntrpmf",   "Cycle and instret privilege mode filtering";
 }
 
 #[cfg(ktest)]
@@ -360,6 +365,14 @@ mod tests {
         // Only empty strings
         let result = parse_isa_extensions_list_wrapper(&["", "", ""]);
         assert!(result.is_empty());
+    }
+
+    #[ktest]
+    fn pmu_filter_extensions() {
+        let expected = IsaExtensions::SMCNTRPMF | IsaExtensions::SSCOFPMF;
+        assert!(parse_isa_string_wrapper("rv64imac_smcntrpmf_sscofpmf").contains(expected));
+        assert!(parse_isa_extensions_list_wrapper(&["smcntrpmf", "sscofpmf"]).contains(expected));
+        assert!(!parse_isa_string_wrapper("rv64imac").intersects(expected));
     }
 
     #[ktest]

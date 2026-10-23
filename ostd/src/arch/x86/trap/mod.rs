@@ -169,6 +169,11 @@ unsafe extern "sysv64" fn trap_handler(f: &mut TrapFrame) {
     let was_irq_enabled =
         f.rflags as u64 & x86_64::registers::rflags::RFlags::INTERRUPT_FLAG.bits() > 0;
 
+    #[cfg(feature = "pmu")]
+    if crate::pmu::recover_register_fault(f) {
+        return;
+    }
+
     let cpu_exception = CpuException::new(f.trap_num, f.error_code);
     match cpu_exception {
         #[cfg(feature = "cvm_guest")]
