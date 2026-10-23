@@ -15,7 +15,7 @@
 
 整体采用四层结构：系统调用层解析 Linux ABI 并创建 fd；线程事件层通过 `PerfContext`、`Record` 与 `Ticket` 管理逻辑事件；OSTD 通过 `CounterHandle` 和每 CPU 的资源记录管理临时硬件分配；架构后端分别处理 Intel、AMD Zen 和 RISC-V SBI PMU 的能力探测、事件配置、计数器启停、读取与释放。线程事件与硬件分配分开，使一个逻辑事件可以跨越多次调度和 CPU 迁移累计，而不把硬件计数器永久绑定给线程。
 
-当前自动化验证记录显示，`run_checks.sh` 在 WSL 中退出码为 0，11 项检查全部通过，包括主机侧 runner/单元测试、两种架构的 PMU 构建与 Clippy，以及关闭 PMU 的默认构建和全仓库检查。这些结果证明构建与静态检查阶段已通过，但尚不能替代客体系统中的真实计数、标准 Linux `perf` 运行、CPU 迁移以及停止/释放故障回滚验证。下一阶段应优先补齐两架构的客体实测和定量报告。
+当前自动化验证记录显示，`tools/pmu/check.sh` 在 WSL 中全部子命令退出码为 0，包括主机侧 runner/单元测试、两种架构的 PMU 构建与 Clippy，以及关闭 PMU 的默认构建和全仓库检查。这些结果证明构建与静态检查阶段已通过，但尚不能替代客体系统中的真实计数、标准 Linux `perf` 运行、CPU 迁移以及停止/释放故障回滚验证。下一阶段应优先补齐两架构的客体实测和定量报告。
 
 ### 本文的核心对象
 
@@ -31,7 +31,7 @@
 
 | 已通过                                                           | 仍需完成                                              |
 |------------------------------------------------------------------|-------------------------------------------------------|
-| 11 项自动化检查全部通过；x86-64 与 RISC-V PMU 构建和 Clippy 通过 | 将标准 `perf` 放入目标客体并完成两架构端到端测试      |
+| 本地自动化检查全部通过（`tools/pmu/check.sh`）；双架构 PMU 构建与 Clippy 通过 | 将标准 `perf` 放入目标客体并完成两架构端到端测试 |
 | 14 项 runner 夹具与 33 项 Rust 单元测试通过                      | 验证目标线程归属、CPU 迁移、exec/退出和最终读数       |
 | 默认关闭 PMU 的构建通过；`make check` 通过                       | 对 AMD 与 RISC-V 停止、释放失败及清理重试进行客体验证 |
 | 格式与文档语法检查通过                                           | 填写真实测量数据、原始日志和性能报告                  |
@@ -286,6 +286,8 @@ struct AttrHeader {
 
 所以，结构体保留采样字段，不代表本版已经支持采样；删除这些字段会改变后续字段的字节偏移，使同一份用户参数被错误解释。
 
+`sample_type` 是这条规则的唯一例外：标准 `perf stat` 即使在纯计数模式下也会设置 `PERF_SAMPLE_IDENTIFIER`，该位只影响样本记录的布局，而计数事件不产生样本。因此本版接受 `sample_type` 为零或恰好等于 `PERF_SAMPLE_IDENTIFIER`，其余任何采样位都仍然表示真实的采样请求，返回 `EOPNOTSUPP`。
+
 `copy_attr()` 通过 `ctx.user_space()` 读取用户内存：先读头部并检查长度，再读基础结构，比较两次读取的 `size`；超过 64 字节的扩展部分要求全零。长度不支持时尝试回写支持的长度并返回 E2BIG。地址访问失败则返回相应错误。
 
 这里的输出是内核自己持有的属性值 `attr`。后续操作使用复制结果，用户地址不会被直接当成可信内核指针。
@@ -307,14 +309,38 @@ pub enum Event {
 
 ``` rust
 pub struct EventConfig {
-    /// The event to measure.
-    pub event: Event,
-    /// Includes execution in user mode.
-    pub count_user: bool,
-    /// Includes execution in this OS's kernel mode.
-    pub count_kernel: bool,
+    event: Event,
+    scope: CountingScope,
+}
+
+pub enum CountingScope {
+    /// Count only user-mode (CPL3 / U-mode) execution.
+    User,
+    /// Count only kernel-mode (CPL0 / S-mode) execution.
+    Kernel,
+    /// Count execution in both modes.
+    UserAndKernel,
 }
 ```
+
+`Event` 给事件命名，`CountingScope` 给出执行态范围，`EventConfig` 把两者组合起来。
+用枚举而不是两个布尔字段，是为了让「两个执行态都排除」这种无意义配置无法被构造。
+
+示例中的 `cycles:u` 对应 `EventConfig::new(Event::CpuCycles, CountingScope::User)`。转换代码在
+`kernel/core/src/syscall/perf_event_open.rs`：
+
+``` rust
+let include_user = attr.flags & ATTR_EXCLUDE_USER == 0;
+let include_kernel = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
+let Some(scope) = CountingScope::from_filters(include_user, include_kernel) else {
+    return_errno_with_message!(Errno::EINVAL, "all requested privilege levels are excluded");
+};
+let config = EventConfig::new(event, scope);
+```
+
+上面只摘录配置生成部分；其执行前提是事件类型和编号已校验。`exclude_user=0` 变成
+「计入用户态」，内核态独立转换，不能从一个过滤位推断另一个过滤位；
+两个都排除时 `from_filters` 返回 `None`，直接以 `EINVAL` 拒绝。
 
 `Event` 给事件命名；`EventConfig` 把事件和执行态范围组合起来。示例中的 `cycles:u` 对应：
 
@@ -349,8 +375,8 @@ let config = EventConfig {
 pub(crate) struct EventSpec {
     pub config: EventConfig,
     pub cpu: Option<CpuId>,
-    pub disabled: bool,
-    pub enable_on_exec: bool,
+    pub is_initially_disabled: bool,
+    pub should_enable_on_exec: bool,
 }
 ```
 
@@ -465,33 +491,33 @@ pub(super) struct Ticket {
 struct Record {
     ticket: Ticket,
     spec: EventSpec,
-    enabled: bool,
-    closed: bool,
+    is_enabled: bool,
+    is_closed: bool,
     fault: Option<PmuError>,
-    count: u64,
-    enabled_ns: u64,
-    enabled_since: Option<u64>,
-    running_ns: u64,
+    base_count: u64,
+    live_count: u64,
+    enabled_time: ActiveTime,
+    base_running_ns: u64,
     live: Option<CounterHandle>,
-    live_since: u64,
-    last_observed: u64,
-    width: u8,
+    live_since_ns: u64,
+    last_observed_ns: u64,
+    width_bits: u8,
 }
 ```
 
 | 字段组                        | 保存的内容                                    | 为什么需要                                 |
 |-------------------------------|-----------------------------------------------|--------------------------------------------|
-| `ticket`、`spec`              | 身份与创建要求                                | 后续控制需要确认对象，调度需要知道计数条件 |
-| `enabled`、`closed`、`fault`  | 当前启用、关闭和错误状态                      | 创建要求不足以表达运行后的状态变化         |
-| `count`                       | 已结算运行片段的总计数                        | 线程切出后仍须保留结果，并跨多次运行累计   |
-| `enabled_ns`、`enabled_since` | 逻辑启用时间和计时起点                        | 区分事件被启用多久与真正占用硬件多久       |
-| `running_ns`、`live_since`    | 实际计数时间及片段起点                        | 记录硬件真正参与计数的时间                 |
+| `ticket`、`spec`               | 身份与创建要求                                | 后续控制需要确认对象，调度需要知道计数条件 |
+| `is_enabled`、`is_closed`、`fault`  | 当前启用、关闭和错误状态                      | 创建要求不足以表达运行后的状态变化         |
+| `base_count`                   | 已结算运行片段的总计数                        | 线程切出后仍须保留结果，并跨多次运行累计   |
+| `enabled_time`                 | 逻辑启用时间与计时起点                        | 区分事件被启用多久与真正占用硬件多久       |
+| `base_running_ns`、`live_since_ns` | 实际计数时间及片段起点                        | 记录硬件真正参与计数的时间                 |
 | `live`                        | 当前片段的 `CounterHandle`，未运行时为 `None` | 连接长期逻辑事件与临时 CPU 资源            |
-| `last_observed`、`width`      | 最近观测时刻和计数宽度                        | 检查观测间隔是否足以避免遗漏回绕           |
+| `last_observed_ns`、`width_bits` | 最近观测时刻和计数宽度                        | 检查观测间隔是否足以避免遗漏回绕           |
 
-`spec.disabled` 描述创建时的要求，`enabled` 描述当前状态。用户执行 ENABLE 后，改变的是当前状态，而不是重新生成一份请求。
+`spec.is_initially_disabled` 描述创建时的要求，`is_enabled` 描述当前状态。用户执行 ENABLE 后，改变的是当前状态，而不是重新生成一份请求。
 
-`count` 保存已经结算到线程层的结果。正在运行的片段由 OSTD 资源层维护，结束片段时才加入 `count`；所以读取前还需要结算当前片段。
+`base_count` 保存已经结算到线程层的结果，`live_count` 保存当前运行片段已观测到的计数。片段结束时 `live_count` 并入 `base_count`；所以读取前还需要结算当前片段。`enabled_time` 是 `ActiveTime`（定义于 `observation.rs`），其 `update()` 返回 `None` 表示观测间隔过长、无法保证累计正确，此时记录 `Overflow` 故障。
 
 ### 4.4 创建记录并分配凭据
 
@@ -499,35 +525,48 @@ struct Record {
 
 ``` rust
     pub(super) fn create(&self, spec: EventSpec) -> Result<Ticket> {
-        let id = NEXT_ID.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
+        let id = NEXT_EVENT_ID
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |cur| cur.checked_add(1))
             .map_err(|_| Error::with_message(Errno::ENOSPC, "PMU event ID space exhausted"))?;
-        let ticket = self.with_frozen(|state, now| {
-            if state.exited { return_errno_with_message!(Errno::ESRCH, "the target thread exited"); }
-            let slot = spec.config.event.index();
-            if state.records[slot].is_some() {
-                return_errno_with_message!(Errno::EBUSY, "one event of each type per thread is supported");
+
+        let ticket = self.with_frozen(|state, _now_ns| {
+            if state.has_exited {
+                return_errno_with_message!(Errno::ESRCH, "the target thread has exited");
             }
-            let generation = state.generations[slot].checked_add(1)
+            let slot = spec.config.event().index();
+            if state.records[slot].is_some() {
+                return_errno_with_message!(
+                    Errno::EBUSY,
+                    "one event of each type per thread is supported"
+                );
+            }
+            let generation = state.generations[slot]
+                .checked_add(1)
                 .ok_or_else(|| Error::with_message(Errno::ENOSPC, "PMU generation exhausted"))?;
             state.generations[slot] = generation;
+
+            let is_enabled = !spec.is_initially_disabled;
             let ticket = Ticket { slot, generation, id };
             state.records[slot] = Some(Record {
-                ticket, spec, enabled: !spec.disabled, closed: false, fault: None, count: 0,
-                enabled_ns: 0, enabled_since: (!spec.disabled).then_some(now), running_ns: 0,
-                live: None, live_since: 0, last_observed: 0, width: 64,
+                ticket,
+                spec,
+                is_enabled,
+                is_closed: false,
+                fault: None,
+                base_count: 0,
+                live_count: 0,
+                enabled_time: ActiveTime::default(),
+                base_running_ns: 0,
+                live: None,
+                live_since_ns: 0,
+                last_observed_ns: 0,
+                width_bits: DEFAULT_COUNTER_WIDTH_BITS,
             });
             Ok(ticket)
         })?;
-        // Report an immediate allocation/start failure and undo this new event.
-        if let Err(err) = self.check_fault(ticket) {
-            self.close(ticket);
-            return Err(err);
-        }
-        Ok(ticket)
-    }
 ```
 
-创建过程先分配事件 ID，再在冻结状态下检查目标是否退出、事件槽位是否空闲。随后增加该槽位代数，生成 `Ticket`，并建立初始 `Record`。示例中的事件初始禁用，所以 `enabled=false`、`live=None`，累计值为零。
+创建过程先分配事件 ID，再在冻结状态下检查目标是否退出、事件槽位是否空闲。随后增加该槽位代数，生成 `Ticket`，并建立初始 `Record`。示例中的事件初始禁用，所以 `is_enabled=false`、`live=None`，累计值为零。
 
 如果创建的是已启用事件，并且目标此时正在允许运行的 CPU 上执行，解除冻结时可能立即启动硬件。代码在创建后检查这种即时启动错误，失败则撤销新事件，不把失败包装成正常的零计数。
 
@@ -793,44 +832,77 @@ let event = match config.event { Event::CpuCycles => 0x76, Event::Instructions =
 OSTD 对外的启动函数位于 `ostd/src/pmu/mod.rs`：
 
 ``` rust
-pub fn start(handle: &CounterHandle, guard: &DisabledLocalIrqGuard) -> Result<()> {
-    with_record(handle, guard, |r| {
-        if let Some(err) = r.fault { return Err(err); }
-        if r.running { return Ok(()); }
-        r.last = r.token.read()? & accounting::mask(r.token.width());
-        match r.token.start() {
-            Ok(()) => { r.running = true; Ok(()) }
-            Err(err) => { r.fault = Some(err); Err(err) }
+pub fn start(handle: &CounterHandle, irq_guard: &DisabledLocalIrqGuard) -> Result<()> {
+    with_record(handle, irq_guard, |record| {
+        if let Some(err) = record.fault {
+            return Err(err);
+        }
+        if record.is_running {
+            return Ok(());
+        }
+
+        // `Token::start` reads the baseline before opening the gates and hands
+        // it back, so the baseline cannot race with the first counted event.
+        match record.token.start() {
+            Ok(initial_raw) => {
+                record.last = initial_raw & accounting::mask(record.token.width_bits());
+                record.is_running = true;
+                Ok(())
+            }
+            Err(err) => {
+                record.fault = Some(err);
+                Err(err)
+            }
         }
     })
 }
 ```
 
-`with_record()` 首先确认当前 CPU 与句柄一致，再检查槽位、分配代数和退役状态。有效后读取计数基准，并调用 `r.token.start()`。
+`with_record()` 首先确认当前 CPU 与句柄一致，再检查槽位、分配代数和退役状态。有效后调用 `record.token.start()`；该方法先读取计数基准，再打开门控，并把基准一并返回，因此基准与首次计数之间不存在竞态。
 
-x86 后端的 Token 方法如下，定义于 `ostd/src/pmu/x86.rs`。这里保留启动与停止的正常路径；释放时的多步清理和失败回滚不能用一条简单的早退语句概括，具体契约见 5.10：
+x86 后端的 Token 方法如下，定义于 `ostd/src/pmu/x86_counter.rs`。`start` 与 `stop` 都返回 `Result<u64>`：前者交回启动前的计数基准，后者交回停止时读到的原始值。停止顺序是先关 local 门控再关 global 门控，且两者都会尝试、结果合并，因为一次失败的启动可能已经打开了 local 门控。释放时的多步清理和失败回滚不能用一条简单的早退语句概括，具体契约见 5.10：
 
 ``` rust
-impl Token {
-    pub(super) fn mask(&self) -> u64 { 1 << self.index }
-    pub(super) fn width(&self) -> u8 { self.width }
-    pub(super) fn read(&self) -> Result<u64> { rd(self.counter) }
+impl<I: Registers> Token<I> {
+    pub(super) fn mask(&self) -> u64 { 1u64 << self.index }
+    pub(super) fn width_bits(&self) -> u8 { self.width_bits }
+    pub(super) fn read(&self) -> Result<u64> { I::read(self.counter_msr) }
 
-    pub(super) fn start(&mut self) -> Result<()> {
-        if self.kind == BackendKind::AmdZen { wr(self.control, self.config | AMD_ENABLE)?; }
-        if let Some(global) = self.global { update(global, 0, self.global_bit)?; }
-        Ok(())
+    pub(super) fn start(&mut self) -> Result<u64> {
+        let initial_raw = self.read()?;
+        if self.kind == BackendKind::AmdZen {
+            I::write(self.control_msr, self.config_bits | AMD_EVTSEL_ENABLE)?;
+        }
+        if let Some(global_msr) = self.global_msr {
+            update_msr::<I>(global_msr, 0, self.global_bit)?;
+        }
+        Ok(initial_raw)
     }
 
-    pub(super) fn stop(&mut self) -> Result<()> {
-        if let Some(global) = self.global { update(global, self.global_bit, 0)?; }
-        if self.kind == BackendKind::AmdZen { wr(self.control, self.config)?; }
-        Ok(())
+    pub(super) fn stop(&mut self) -> Result<u64> {
+        self.stop_gates()?;
+        self.read()
     }
 
-    // release() is responsible for stopping the event, clearing only the
-    // state owned by this token, and restoring the prior gate state.
-    // Its failure path must preserve enough state for cleanup/retry; see §5.10.
+    // Attempt both gates even when the first write fails: a failed start may
+    // already have enabled the local counter before the global write.
+    fn stop_gates(&mut self) -> Result<()> {
+        let local_result = if self.kind == BackendKind::AmdZen {
+            I::write(self.control_msr, self.config_bits)
+        } else {
+            Ok(())
+        };
+        let global_result = if let Some(global_msr) = self.global_msr {
+            update_msr::<I>(global_msr, self.global_bit, 0)
+        } else {
+            Ok(())
+        };
+        local_result.and(global_result)
+    }
+
+    // `release()` stops the event, clears only the state owned by this token,
+    // and restores the prior gate state; its failure path must keep enough
+    // state for cleanup or retry. See §5.10.
 }
 ```
 
@@ -956,23 +1028,39 @@ if let Some(thread) = task.as_thread() {
 
 ### 6.3 停止、结算与释放的顺序
 
-线程层的 `Record::stop()` 位于 `kernel/core/src/events/perf/context.rs`。它取出 `live` 句柄，停止硬件片段、取得该片段累计值、更新线程 `count` 与 `running_ns`，并归还句柄代表的资源。
+线程层的 `Record::stop()` 位于 `kernel/core/src/events/perf/context.rs`。它取出 `live` 句柄，先检查观测间隔，再停止硬件片段、取得该片段累计值、把 `live_count` 并入 `base_count`、累加 `base_running_ns`，最后归还句柄代表的资源。
 
 其中 OSTD 停止接口的代码为：
 
 ``` rust
-pub fn stop(handle: &CounterHandle, guard: &DisabledLocalIrqGuard) -> Result<u64> {
-    with_record(handle, guard, |r| {
-        // Also try stopping a faulted token: software errors must not leave it counting.
-        if let Err(err) = r.token.stop() { r.fault = Some(err); return Err(err); }
-        let result = observe(r);
-        r.running = false;
+pub fn stop(handle: &CounterHandle, irq_guard: &DisabledLocalIrqGuard) -> Result<u64> {
+    with_record(handle, irq_guard, |record| {
+        if !record.is_running {
+            return record.fault.map_or(Ok(record.total), Err);
+        }
+        // A software observation error must not skip the hardware stop.
+        let result = record.token.stop().and_then(|raw| {
+            record.is_running = false;
+            if let Some(err) = record.fault {
+                return Err(err);
+            }
+            accounting::accumulate(
+                &mut record.total,
+                &mut record.last,
+                raw,
+                record.token.width_bits(),
+            )
+            .ok_or(PmuError::Overflow)
+        });
+        if let Err(err) = result {
+            record.fault.get_or_insert(err);
+        }
         result
     })
 }
 ```
 
-它先调用后端停止方法，再通过 `observe()` 读取并结算；即使软件记录了错误，也仍尝试停止硬件。归还时 `pmu::release(handle, guard)` 按值接收句柄，结束本次分配。
+它先调用后端停止方法取得原始值，再用 `accounting::accumulate()` 结算；即使软件已经记录了错误，也仍会尝试停止硬件。归还时 `pmu::release(handle, guard)` 按值接收句柄，结束本次分配。
 
 例如线程先在 CPU 0 上运行，得到片段计数 1200；切出时将 1200 加到线程记录。后来迁到 CPU 1，重新申请计数器，得到片段计数 800。最终同一逻辑事件的累计值为 2000，原 Ticket 不变，两次 CounterHandle 不同。
 
@@ -1232,22 +1320,46 @@ x86 后端通过 `probe()` 限定支持的厂商、处理器能力和运行环�
 
 #### 当前自动化检查结果
 
-| 检查项                   | 当前记录                                   | 结果能证明什么                           |
-|--------------------------|--------------------------------------------|------------------------------------------|
-| 环境检查                 | 通过                                       | 检查脚本所需工具链与环境可用             |
-| Host 测试                | 14 项 runner 夹具、33 项 Rust 单元测试通过 | 被覆盖的主机侧逻辑和测试辅助流程符合预期 |
-| SCML                     | 通过                                       | 相关文档语法检查通过                     |
-| rustfmt                  | 通过                                       | Rust 代码格式检查通过                    |
-| C format                 | 通过                                       | C 代码格式检查通过                       |
-| x86-64 PMU 构建          | 通过                                       | 该配置下内核可完成编译                   |
-| RISC-V PMU 构建          | 通过                                       | 该配置下内核可完成编译                   |
-| 默认构建（不启用 PMU）   | 通过                                       | PMU 关闭时默认构建未被该功能破坏         |
-| x86-64 Clippy            | 通过                                       | 对应配置的 Clippy 检查通过               |
-| RISC-V Clippy            | 通过                                       | 对应配置的 Clippy 检查通过               |
-| `make check`（含 typos） | 通过                                       | 全仓库检查通过                           |
-| 总体结果                 | `run_checks.sh` 退出码为 0，11 项检查全绿  | 自动化构建与静态检查阶段完成             |
+下表是提交前的本地记录：x86-64 宿主机上的 WSL2 + Docker（nix 工具链），
+被测代码为本次提交的父版本。它说明构建与静态检查通过，但**不是可复核的 CI 记录**——
+本次没有接入上游 CI，GitHub 上也不会出现对应检查结果。要复核请按本节末尾的命令重跑，
+并把输出绑定到具体提交 SHA。
 
-以上结果来自当前保存的 WSL 验证记录。它们不应被扩大解释为真实硬件计数、标准 `perf` 工具运行、跨 CPU 迁移或硬件故障回滚已经通过。后续客体验收应将每条命令、目标架构、虚拟化/固件环境、退出码和原始日志与结论一起保存。
+| 检查项                     | 当前记录                              | 结果能证明什么                             |
+|----------------------------|---------------------------------------|--------------------------------------------|
+| 环境检查                   | 通过                                  | 检查脚本所需工具链与环境可用               |
+| 主机测试（`host`）         | 14 项 runner 夹具、33 项 Rust 测试通过 | 被覆盖的主机侧逻辑和测试辅助流程符合预期   |
+| SCML（`scml`）             | 通过                                  | 相关文档语法检查通过                       |
+| rustfmt（`format`）        | 通过                                  | Rust 代码格式检查通过                      |
+| C format                   | 通过                                  | C 代码格式检查通过                         |
+| x86-64 PMU 构建（`x86`）   | 通过                                  | 该配置下内核可完成编译                     |
+| RISC-V PMU 构建（`riscv`） | 通过                                  | 该配置下内核可完成编译                     |
+| 默认构建（`default`）      | 通过                                  | PMU 关闭时默认构建未被该功能破坏           |
+| x86-64 Clippy（`lint`）    | 通过                                  | 对应配置的 Clippy 检查通过                 |
+| RISC-V Clippy（`lint`）    | 通过                                  | 对应配置的 Clippy 检查通过                 |
+| `make check`（含 typos）   | 通过                                  | 全仓库检查通过                             |
+
+复现方式：在仓库根目录依次运行
+
+``` sh
+tools/pmu/check.sh host    # 主机侧事务与故障注入测试
+tools/pmu/check.sh lint    # 双架构 Clippy + 关闭 PMU 的构建
+tools/pmu/check.sh x86     # x86-64 PMU 构建
+tools/pmu/check.sh riscv   # RISC-V PMU 构建
+tools/pmu/check.sh default # 关闭 PMU 的默认构建
+tools/pmu/check.sh scml    # SCML 语法校验
+tools/pmu/check.sh format  # 仅格式化本次涉及的 Rust 文件
+make check                 # 全仓库格式、Clippy、typos 检查
+```
+
+`tools/pmu/check.sh` 是本项目新增的检查入口，不是上游 Asterinas 的脚本；
+早期交付包中的 `run_checks.sh` 只是把上述命令串起来的汇总脚本，两者等价。
+仓库内的入口以 `tools/pmu/check.sh` 为准。
+
+以上结果不应被扩大解释为真实硬件计数、标准 `perf` 工具运行、跨 CPU 迁移或硬件故障回滚已经通过。
+客体验收尚未完成：两架构的成功十轮 `perf stat` 输出、目标线程归属、CPU 迁移和停止/释放失败回滚
+都还需要在带 PMU 的 KVM 或真实硬件上取得，并按「提交 SHA + 架构 + 镜像/工具链/固件版本 + 完整命令 +
+退出码 + 原始日志」的形式保存。
 
 ### 8.5 分阶段集成与验证
 
