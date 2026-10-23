@@ -18,7 +18,7 @@ mod types;
 mod x86_counter;
 
 use types::ConfigFailure;
-pub use types::{BackendKind, Event, EventConfig, PmuCaps, PmuError, Result};
+pub use types::{BackendKind, CountingScope, Event, EventConfig, PmuCaps, PmuError, Result};
 #[cfg(target_arch = "x86_64")]
 #[path = "x86.rs"]
 mod backend;

@@ -25,10 +25,11 @@ const PERF_COUNT_HW_INSTRUCTIONS: u64 = 1;
 const PERF_ATTR_SIZE_VER0: u32 = 64;
 #[cfg(feature = "pmu")]
 const PERF_FLAG_FD_CLOEXEC: u64 = 1 << 3;
-
+#[cfg(feature = "pmu")]
+use crate::events::perf::attributes;
 #[cfg(feature = "pmu")]
 use crate::events::perf::attributes::{
-    ATTR_DISABLED, ATTR_ENABLE_ON_EXEC, ATTR_EXCLUDE_KERNEL, ATTR_EXCLUDE_USER, supported_flags,
+    ATTR_DISABLED, ATTR_ENABLE_ON_EXEC, ATTR_EXCLUDE_KERNEL, ATTR_EXCLUDE_USER,
 };
 
 #[cfg(feature = "pmu")]
@@ -45,8 +46,8 @@ pub(super) fn sys_perf_event_open(
     ctx: &Context,
 ) -> Result<SyscallReturn> {
     use ostd::{
-        cpu::{CpuId, all_cpus},
-        pmu::{self, Event, EventConfig},
+        cpu::{self, CpuId},
+        pmu::{self, CountingScope, Event, EventConfig},
     };
 
     use crate::{
@@ -92,9 +93,11 @@ pub(super) fn sys_perf_event_open(
 
     // Inheritance is not implemented. Accepting it with enable_on_exec would
     // silently lose counts from descendants; standard perf must use --no-inherit.
-    if !supported_flags(attr.flags)
+    // Counting never samples, so only the sample layout bit that `perf stat`
+    // sets unconditionally is tolerated; any other bit requests real sampling.
+    if !attributes::supported_flags(attr.flags)
         || attr.sample_period != 0
-        || attr.sample_type != 0
+        || !attributes::supported_sample_type(attr.sample_type)
         || attr.read_format & !SUPPORTED_READ_FORMAT_MASK != 0
         || attr.wakeup_events != 0
         || attr.bp_type != 0
@@ -108,12 +111,12 @@ pub(super) fn sys_perf_event_open(
     } else {
         Event::Instructions
     };
-    let is_user_counted = attr.flags & ATTR_EXCLUDE_USER == 0;
-    let is_kernel_counted = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
-    if !is_user_counted && !is_kernel_counted {
+    let include_user = attr.flags & ATTR_EXCLUDE_USER == 0;
+    let include_kernel = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
+    let Some(scope) = CountingScope::from_filters(include_user, include_kernel) else {
         return_errno_with_message!(Errno::EINVAL, "all requested privilege levels are excluded");
-    }
-    let config = EventConfig::new(event, is_user_counted, is_kernel_counted);
+    };
+    let config = EventConfig::new(event, scope);
 
     let effective_caps = ctx.posix_thread.credentials().effective_capset();
     if !effective_caps.intersects(CapSet::PERFMON | CapSet::SYS_ADMIN) {
@@ -131,7 +134,9 @@ pub(super) fn sys_perf_event_open(
         (thread.perf().clone(), pid as u32)
     };
 
-    for candidate_cpu in all_cpus().filter(|candidate| target_cpu.is_none_or(|c| c == *candidate)) {
+    for candidate_cpu in
+        cpu::all_cpus().filter(|candidate| target_cpu.is_none_or(|c| c == *candidate))
+    {
         pmu::capabilities(candidate_cpu).map_err(|err| match err {
             pmu::PmuError::NoCounter => {
                 Error::with_message(Errno::EBUSY, "PMU counter is occupied")

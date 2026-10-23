@@ -21,8 +21,19 @@ const SUPPORTED: u64 = ATTR_DISABLED
     | ATTR_ENABLE_ON_EXEC
     | ATTR_EXCLUDE_GUEST;
 
+/// `PERF_SAMPLE_IDENTIFIER` only changes the layout of a sample record. A
+/// counting event produces no samples, but standard `perf stat` still sets the
+/// bit, so it must be tolerated; every other bit requests real sampling.
+const PERF_SAMPLE_IDENTIFIER: u64 = 1 << 16;
+
+const SUPPORTED_SAMPLE_TYPE: u64 = PERF_SAMPLE_IDENTIFIER;
+
 pub(crate) const fn supported_flags(flags: u64) -> bool {
     flags & !SUPPORTED == 0
+}
+
+pub(crate) const fn supported_sample_type(sample_type: u64) -> bool {
+    sample_type & !SUPPORTED_SAMPLE_TYPE == 0
 }
 
 #[cfg(test)]
@@ -52,5 +63,21 @@ mod tests {
             ATTR_DISABLED | ATTR_ENABLE_ON_EXEC | ATTR_EXCLUDE_KERNEL | ATTR_EXCLUDE_GUEST
         ));
         assert!(supported_flags(0));
+    }
+
+    #[test]
+    fn perf_stat_sample_identifier_is_tolerated() {
+        // `perf stat` sets `PERF_SAMPLE_IDENTIFIER` even when it only counts.
+        assert!(supported_sample_type(0));
+        assert!(supported_sample_type(PERF_SAMPLE_IDENTIFIER));
+    }
+
+    #[test]
+    fn real_sampling_requests_are_still_rejected() {
+        assert!(!supported_sample_type(1 << 0)); // PERF_SAMPLE_IP
+        assert!(!supported_sample_type(1 << 6)); // PERF_SAMPLE_ID
+        assert!(!supported_sample_type(
+            PERF_SAMPLE_IDENTIFIER | (1 << 2) // plus PERF_SAMPLE_TIME
+        ));
     }
 }

@@ -53,6 +53,10 @@ literals; this does not imply support for other group descriptors.
 The 64-byte attribute prefix is supported; larger structures require zero tails.
 Supported attribute bits are `disabled`, `exclude_user`, `exclude_kernel`,
 `exclude_hv`, `exclude_idle`, `enable_on_exec`, and `exclude_guest`.
+`sample_type` must be zero or `PERF_SAMPLE_IDENTIFIER`, which standard `perf stat`
+sets unconditionally; it changes only the layout of a sample record, and no
+samples are produced when `sample_period` is zero. Any other `sample_type` bit
+requests real sampling and is rejected.
 Idle tasks and guest/hypervisor execution are outside this per-thread scope.
 Excluding both user and kernel execution returns `EINVAL`.
 
