@@ -30,11 +30,11 @@ let
   # Whether the initramfs should include evtest, a common tool to debug input devices (`/dev/input/eventX`)
   is_evtest_included = false;
   # Standard Linux `perf` for PMU guest acceptance (`perf stat` on hardware events).
-  # nixpkgs builds it natively for x86-64. The RISC-V initramfs is cross-built and
-  # nixpkgs does not cross-build this package, so a `perf` built on a riscv64
-  # machine is injected at `./perf-riscv64/perf`. See that directory's README,
-  # `tools/pmu/build_riscv_perf.sh`, and the acceptance steps in
-  # `docs/pmu/DESIGN_AND_ABI.md`.
+  # nixpkgs builds it natively for x86-64. `pkgs.perf` also evaluates for the
+  # riscv64 cross system, but that build is not verified here, so a `perf` built
+  # on a riscv64 machine can instead be injected at `./perf-riscv64/perf`. See
+  # that directory's README, `tools/pmu/build_riscv_perf.sh`, and the acceptance
+  # steps in `docs/pmu/DESIGN_AND_ABI.md`.
   riscv_perf_dir = ./perf-riscv64;
   has_riscv_perf =
     hostPlatform.isRiscV64 && builtins.pathExists (riscv_perf_dir + "/perf");
@@ -48,7 +48,7 @@ let
   ++ lib.optionals (conformance != null) [ conformance.package ]
   ++ lib.optionals (regression != null) [ regression.package ]
   ++ lib.optionals is_evtest_included [ pkgs.evtest ]
-  ++ lib.optionals hostPlatform.isx86_64 [ pkgs.linuxPackages.perf ];
+  ++ lib.optionals hostPlatform.isx86_64 [ pkgs.perf ];
 in
 stdenvNoCC.mkDerivation {
   name = "initramfs";
@@ -62,7 +62,13 @@ stdenvNoCC.mkDerivation {
     ln -sfn usr/lib64 $out/lib64
     cp -r ${busybox}/bin/* $out/bin/
     ${lib.optionalString hostPlatform.isx86_64 ''
-      cp -r ${pkgs.linuxPackages.perf}/bin/* $out/bin/
+      cp -r ${pkgs.perf}/bin/* $out/bin/
+      # `bin/perf` is a wrapper that execs the real binary from the Nix store,
+      # and the binary is dynamically linked against store paths. The closure
+      # copy below skips `all_pkgs` themselves, so install this package's own
+      # store path here; otherwise the wrapper points at a missing file.
+      mkdir -p $out/nix/store
+      cp -r ${pkgs.perf} $out/nix/store/
     ''}
     ${lib.optionalString has_riscv_perf ''
       install -Dm755 ${riscv_perf_dir}/perf $out/bin/perf
