@@ -1,0 +1,3 @@
+QEMU process exit: 33
+PMU_VERIFY_RESULT abi=0 workload=0 probe=0 perf_version=0 perf_stat=0 suite=77
+INCOMPLETE: guest prerequisites or test coverage remain unavailable.

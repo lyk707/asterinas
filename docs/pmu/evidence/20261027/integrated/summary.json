@@ -1,0 +1,20 @@
+{
+  "BaseRemoteHead": "6c16caf22a1a3276ff3c2bf991ab3fed353235e2",
+  "SourceIdentity": "source-sha256.txt",
+  "HostRustTestsPassed": 34,
+  "RunnerFixturesPassed": 14,
+  "X86_64KernelBuild": "passed",
+  "PmuRustFormat": "passed",
+  "UpdatedCFormat": "passed",
+  "KvmEnabled": true,
+  "GuestResult": "PMU_VERIFY_RESULT abi=0 workload=0 probe=0 perf_version=0 perf_stat=0 suite=77",
+  "PerfRounds": 10,
+  "Failed": 0,
+  "Skipped": 1,
+  "PerTargetIsolation": "passed",
+  "Migration": "not verified; existing scheduler does not migrate on affinity change",
+  "ProbeCycles": 4009768,
+  "PerfCycles": 8916812,
+  "PerfInstructions": 20260921,
+  "FullAcceptanceComplete": false
+}

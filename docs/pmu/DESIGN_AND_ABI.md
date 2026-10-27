@@ -1,5 +1,12 @@
 # Asterinas 性能事件计数支持设计与验证报告
 
+> 2026-10-27 实测补充：AMD / WSL / KVM 已得到非零硬件计数，
+> 计数回归、并发及十轮标准 perf 无失败；跨 CPU 迁移受调度器限制而跳过。
+> 本轮实际执行范围与原始证据见 [实测记录](VALIDATION_20261027.md)，
+> 源码构建与运行步骤见 [使用说明](USAGE.md)。
+> 下文较早的构建与静态检查描述不代表本轮全部重新执行。
+
+
 1.  第一章 背景、问题与范围
 2.  第二章 总体设计
 3.  第三章 用户接口与请求解析
@@ -15,7 +22,10 @@
 
 整体采用四层结构：系统调用层解析 Linux ABI 并创建 fd；线程事件层通过 `PerfContext`、`Record` 与 `Ticket` 管理逻辑事件；OSTD 通过 `CounterHandle` 和每 CPU 的资源记录管理临时硬件分配；架构后端分别处理 Intel、AMD Zen 和 RISC-V SBI PMU 的能力探测、事件配置、计数器启停、读取与释放。线程事件与硬件分配分开，使一个逻辑事件可以跨越多次调度和 CPU 迁移累计，而不把硬件计数器永久绑定给线程。
 
-当前自动化验证记录显示，`tools/pmu/check.sh` 在 WSL 中全部子命令退出码为 0，包括主机侧 runner/单元测试、两种架构的 PMU 构建与 Clippy，以及关闭 PMU 的默认构建和全仓库检查。这些结果证明构建与静态检查阶段已通过，但尚不能替代客体系统中的真实计数、标准 Linux `perf` 运行、CPU 迁移以及停止/释放故障回滚验证。下一阶段应优先补齐两架构的客体实测和定量报告。
+本轮已在 AMD / WSL / KVM 中完成 x86-64 PMU 内核构建和客体计数验证。
+主机侧 34 项 Rust 测试与 14 项 runner 夹具通过，客体回归、并发、任务隔离及十轮标准 perf 无失败；
+跨 CPU 迁移受当前调度器限制而跳过，完整套件为 `failed=0 skipped=1`。
+本轮未重新执行双架构 Clippy、完整 RISC-V 构建或全仓库检查，具体证据见 [实测记录](VALIDATION_20261027.md)。
 
 ### 本文的核心对象
 
@@ -29,12 +39,11 @@
 
 ### 当前验证状态
 
-| 已通过                                                           | 仍需完成                                              |
-|------------------------------------------------------------------|-------------------------------------------------------|
-| 本地自动化检查全部通过（`tools/pmu/check.sh`）；双架构 PMU 构建与 Clippy 通过 | 将标准 `perf` 放入目标客体并完成两架构端到端测试 |
-| 14 项 runner 夹具与 33 项 Rust 单元测试通过                      | 验证目标线程归属、CPU 迁移、exec/退出和最终读数       |
-| 默认关闭 PMU 的构建通过；`make check` 通过                       | 对 AMD 与 RISC-V 停止、释放失败及清理重试进行客体验证 |
-| 格式与文档语法检查通过                                           | 填写真实测量数据、原始日志和性能报告                  |
+| 本轮已完成 | 仍未完成 |
+|---|---|
+| x86-64 PMU 完整构建、34 项 Rust 测试、14 项 runner 夹具 | 本轮重新执行双架构 Clippy、完整 RISC-V 构建和全仓库检查 |
+| AMD KVM 客体中的非零 cycles/instructions 和十轮标准 perf | Intel / RISC-V 客体硬件验收与原生 Linux 性能开销测量 |
+| 计数生命周期、远程读取、退出、并发和任务隔离回归 | 实际跨 CPU 迁移，以及停止/释放硬件故障注入 |
 
 ## 第一章 背景、问题与范围
 
@@ -330,40 +339,22 @@ pub enum CountingScope {
 `kernel/core/src/syscall/perf_event_open.rs`：
 
 ``` rust
-let include_user = attr.flags & ATTR_EXCLUDE_USER == 0;
-let include_kernel = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
-let Some(scope) = CountingScope::from_filters(include_user, include_kernel) else {
-    return_errno_with_message!(Errno::EINVAL, "all requested privilege levels are excluded");
+let is_user_counted = attr.flags & ATTR_EXCLUDE_USER == 0;
+let is_kernel_counted = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
+let scope = match (is_user_counted, is_kernel_counted) {
+    (true, false) => CountingScope::User,
+    (false, true) => CountingScope::Kernel,
+    (true, true) => CountingScope::UserAndKernel,
+    (false, false) => {
+        return_errno_with_message!(Errno::EINVAL, "all requested privilege levels are excluded");
+    }
 };
 let config = EventConfig::new(event, scope);
 ```
 
 上面只摘录配置生成部分；其执行前提是事件类型和编号已校验。`exclude_user=0` 变成
 「计入用户态」，内核态独立转换，不能从一个过滤位推断另一个过滤位；
-两个都排除时 `from_filters` 返回 `None`，直接以 `EINVAL` 拒绝。
-
-`Event` 给事件命名；`EventConfig` 把事件和执行态范围组合起来。示例中的 `cycles:u` 对应：
-
-``` rust
-// 解释用示意：本次请求转换后的具体值
-EventConfig {
-    event: Event::CpuCycles,
-    count_user: true,
-    count_kernel: false,
-}
-```
-
-转换代码在 `kernel/core/src/syscall/perf_event_open.rs`：
-
-``` rust
-let config = EventConfig {
-    event: if attr.config == 0 { Event::CpuCycles } else { Event::Instructions },
-    count_user: attr.flags & ATTR_EXCLUDE_USER == 0,
-    count_kernel: attr.flags & ATTR_EXCLUDE_KERNEL == 0,
-};
-```
-
-上面只摘录配置生成部分；其执行前提是事件类型和编号已校验。`exclude_user=0` 变成 `count_user=true`，内核态独立转换，不能从一个过滤位推断另一个过滤位。
+两个都排除时直接以 `EINVAL` 拒绝，不构造事件配置。
 
 这个抽象放在 OSTD，是因为它是上层事件管理和底层资源接口共同使用的配置契约。它不携带 pid、fd 或 Linux 属性长度，后端只需要理解要统计的事件及执行态。
 
@@ -1326,7 +1317,7 @@ wrapper 会指向缺失的文件。
 cycles/instructions、启停/RESET/关闭与读取语义、CPU 迁移和目标退出后的最终结果，
 以及 AMD 与 RISC-V 后端在停止或释放失败时的回滚行为。定量报告模板中的空白测量项应在真实测试完成后填写，不能以模板或编译通过记录代替。
 
-#### 当前自动化检查结果
+#### 较早自动化检查记录
 
 下表是提交前的本地记录：x86-64 宿主机上的 WSL2 + Docker（nix 工具链），
 被测代码为本次提交的父版本。它说明构建与静态检查通过，但**不是可复核的 CI 记录**——

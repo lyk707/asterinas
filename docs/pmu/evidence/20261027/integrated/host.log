@@ -1,0 +1,74 @@
+make: Entering directory '/root/asterinas/test/initramfs/src/regression/io/pmu'
+CC <= /root/asterinas/target/pmu-check/test/io/pmu/pmu_probe
+CC <= /root/asterinas/target/pmu-check/test/io/pmu/pmu_regression
+CC <= /root/asterinas/target/pmu-check/test/io/pmu/pmu_stat
+CC <= /root/asterinas/target/pmu-check/test/io/pmu/pmu_stress
+CC <= /root/asterinas/target/pmu-check/test/io/pmu/pmu_workload
+make: Leaving directory '/root/asterinas/test/initramfs/src/regression/io/pmu'
+PASS: C ABI size, offsets, bitfield flags and ioctl encodings
+usage: /root/asterinas/target/pmu-check/test/io/pmu/pmu_stat [-e cycles:u,instructions:u] -- program [args...]
+Scopes: :u user, :k kernel, :uk both. One monitored thread, no inheritance.
+checksum=2943616055973086194
+
+running 4 tests
+test accounting::tests::handles_sixty_four_bit_counters_without_shifting_by_sixty_four ... ok
+test accounting::tests::logical_overflow_is_an_error ... ok
+test accounting::tests::wraps_at_forty_eight_bit_width ... ok
+test accounting::tests::wraps_at_the_hardware_width ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 30 tests
+test advertised_amd_v2_fault_cannot_silently_fall_back_to_legacy ... ok
+test amd_legacy_never_accesses_perfmon_v2_registers ... ok
+test amd_global_read_failure_does_not_skip_local_stop ... ok
+test amd_local_stop_failure_does_not_skip_global_stop ... ok
+test attributes::tests::inheritance_is_rejected_even_with_enable_on_exec ... ok
+test attributes::tests::no_inherit_perf_stat_flags_are_supported ... ok
+test attributes::tests::standard_perf_stat_identifier_does_not_request_sampling ... ok
+test attributes::tests::unsupported_modes_are_not_silently_accepted ... ok
+test failed_cleanup_never_restores_an_enabled_gate ... ok
+test failed_cleanup_start_does_not_forget_mapping ... ok
+test failed_configuration_retains_real_rollback_state ... ok
+test failed_reset_retains_ownership_and_retries_cleanup ... ok
+test failed_snapshot_never_writes_or_fabricates_rollback_token ... ok
+test filter_capability_requires_both_audited_firmware_and_matching_isa ... ok
+test intel_release_preserves_other_counter_fields_and_gates ... ok
+test invalid_sbi_identity_is_rejected_before_narrowing_or_shift ... ok
+test metadata_and_csr_failures_keep_a_cleanup_token ... ok
+test never_started_and_running_sbi_counters_can_be_released ... ok
+test observation::tests::enabled_time_excludes_sleep_disabled_time_and_read_freezes ... ok
+test observation::tests::full_wrap_deadline_and_clock_regression_fail_closed ... ok
+test observation::tests::sixty_four_bit_width_and_invalid_metadata ... ok
+test observation::tests::time_overflow_and_backward_clock_do_not_saturate_silently ... ok
+test partial_start_can_be_released_without_upper_running_flag ... ok
+test sbi_metadata_rejects_unsafe_csr_width_and_reserved_fields ... ok
+test sbi_never_offers_an_owned_counter_and_sets_requested_filters ... ok
+test stop_reads_after_disabling_and_start_returns_baseline ... ok
+test stopped_foreign_amd_configuration_is_not_overwritten ... ok
+test stopped_release_works_with_both_opensbi_reset_behaviors ... ok
+test stopped_sbi_counter_can_restart_without_losing_mapping ... ok
+test x86_owned_mask_prevents_a_second_allocation ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+PASS valid: exit 0
+PASS zero_count: exit 1
+PASS zero_runtime: exit 1
+PASS missing_event: exit 1
+PASS duplicate_event: exit 1
+PASS not_counted: exit 1
+PASS not_supported: exit 1
+PASS multiplexed: exit 1
+PASS malformed: exit 1
+PASS failed_process: exit 1
+PASS error_diagnostic: exit 1
+PASS failed_diagnostic: exit 1
+PASS missing_perf: exit 77
+PASS skipped_migration: exit 77
+14 runner fixture tests passed; these are not PMU hardware measurements.
+PASS riscv64imac-unknown-none-elf assembly and exact fault-site layout
+PASS x86_64-unknown-none assembly and exact fault-site layout
+Assembly compilation/layout only; traps have not been exercised in a guest.
+Host tests cover production logic with injected hardware access, not guest hardware execution.

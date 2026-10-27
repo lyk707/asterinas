@@ -1,0 +1,27 @@
+{
+  "qemu": {
+    "qemu": {
+      "micro": 0,
+      "minor": 2,
+      "major": 6
+    },
+    "package": "Debian 1:6.2+dfsg-2ubuntu6.31"
+  },
+  "kvm": {
+    "enabled": true,
+    "present": true
+  },
+  "cpu": "host,pmu=on",
+  "properties": {
+    "perfctr-core": true,
+    "perfctr_core": true,
+    "family": 25,
+    "vendor": "AuthenticAMD",
+    "model": 97,
+    "stepping": 2,
+    "pmu": true,
+    "perfctr-nb": false,
+    "perfctr_nb": false,
+    "vmx-rdpmc-exit": false
+  }
+}
