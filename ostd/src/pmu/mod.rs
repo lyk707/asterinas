@@ -69,10 +69,6 @@ pub fn capabilities(cpu: CpuId) -> Result<PmuCaps> {
 
 /// Allocates and configures a stopped hardware counter on the current CPU.
 pub fn configure(config: EventConfig, irq_guard: &DisabledLocalIrqGuard) -> Result<CounterHandle> {
-    if !config.is_user_counted() && !config.is_kernel_counted() {
-        return Err(PmuError::InvalidConfig);
-    }
-
     let cpu = irq_guard.current_cpu();
     let mut local = LOCAL.get_on_cpu(cpu).lock();
     let caps = local.caps.unwrap_or(Err(PmuError::Unsupported))?;

@@ -25,11 +25,10 @@ const PERF_COUNT_HW_INSTRUCTIONS: u64 = 1;
 const PERF_ATTR_SIZE_VER0: u32 = 64;
 #[cfg(feature = "pmu")]
 const PERF_FLAG_FD_CLOEXEC: u64 = 1 << 3;
-#[cfg(feature = "pmu")]
-use crate::events::perf::attributes;
+
 #[cfg(feature = "pmu")]
 use crate::events::perf::attributes::{
-    ATTR_DISABLED, ATTR_ENABLE_ON_EXEC, ATTR_EXCLUDE_KERNEL, ATTR_EXCLUDE_USER,
+    self, ATTR_DISABLED, ATTR_ENABLE_ON_EXEC, ATTR_EXCLUDE_KERNEL, ATTR_EXCLUDE_USER,
 };
 
 #[cfg(feature = "pmu")]
@@ -93,11 +92,8 @@ pub(super) fn sys_perf_event_open(
 
     // Inheritance is not implemented. Accepting it with enable_on_exec would
     // silently lose counts from descendants; standard perf must use --no-inherit.
-    // Counting never samples, so only the sample layout bit that `perf stat`
-    // sets unconditionally is tolerated; any other bit requests real sampling.
     if !attributes::supported_flags(attr.flags)
-        || attr.sample_period != 0
-        || !attributes::supported_sample_type(attr.sample_type)
+        || !attributes::supported_sampling(attr.sample_period, attr.sample_type)
         || attr.read_format & !SUPPORTED_READ_FORMAT_MASK != 0
         || attr.wakeup_events != 0
         || attr.bp_type != 0
@@ -111,10 +107,18 @@ pub(super) fn sys_perf_event_open(
     } else {
         Event::Instructions
     };
-    let include_user = attr.flags & ATTR_EXCLUDE_USER == 0;
-    let include_kernel = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
-    let Some(scope) = CountingScope::from_filters(include_user, include_kernel) else {
-        return_errno_with_message!(Errno::EINVAL, "all requested privilege levels are excluded");
+    let is_user_counted = attr.flags & ATTR_EXCLUDE_USER == 0;
+    let is_kernel_counted = attr.flags & ATTR_EXCLUDE_KERNEL == 0;
+    let scope = match (is_user_counted, is_kernel_counted) {
+        (true, false) => CountingScope::User,
+        (false, true) => CountingScope::Kernel,
+        (true, true) => CountingScope::UserAndKernel,
+        (false, false) => {
+            return_errno_with_message!(
+                Errno::EINVAL,
+                "all requested privilege levels are excluded"
+            );
+        }
     };
     let config = EventConfig::new(event, scope);
 

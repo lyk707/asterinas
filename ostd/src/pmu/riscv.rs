@@ -9,7 +9,7 @@ use super::{
     sbi_counter::{self, CounterInfo, Firmware, GET_INFO, SBI_EXT_BASE, SBI_EXT_PMU, SbiError},
 };
 use crate::arch::{
-    cpu::extension::{IsaExtensions, has_extensions},
+    cpu::extension::{self, IsaExtensions},
     trap::TrapFrame,
 };
 
@@ -47,8 +47,8 @@ pub(super) fn probe() -> Result<PmuCaps> {
     if !sbi_counter::supports_filter_contract(implementation, version) {
         return Err(PmuError::UnsupportedFilter);
     }
-    let fixed_filter = has_extensions(IsaExtensions::SMCNTRPMF);
-    let hpm_filter = has_extensions(IsaExtensions::SSCOFPMF);
+    let fixed_filter = extension::has_extensions(IsaExtensions::SMCNTRPMF);
+    let hpm_filter = extension::has_extensions(IsaExtensions::SSCOFPMF);
     let total = Sbi::call(SBI_EXT_PMU, 0, [0; 5])?.min(64);
     let mut candidates = 0u64;
     let mut width_bits = 64;

@@ -18,3 +18,9 @@ The resulting binary must run on the target rootfs, so prefer a static build
 
 Without this file the RISC-V initramfs simply lacks `/bin/perf`; the regression
 scripts then report the standard-perf acceptance as `SKIP`, never as `PASS`.
+
+The PMU acceptance build can also select target-architecture perf with
+`ENABLE_PMU_TESTS=true`. That cross build has not been validated on RISC-V.
+For this manual injection route, leave `ENABLE_PMU_TESTS=false` (the default)
+to avoid requesting the unverified cross build. The x86-64 acceptance uses
+`ENABLE_PMU_TESTS=true` and preserves the perf wrapper's own Nix store path.

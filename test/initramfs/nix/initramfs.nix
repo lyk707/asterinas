@@ -6,6 +6,7 @@
   hostPlatform,
   writeClosure,
   busybox,
+  perf ? null,
   benchmark,
   conformance,
   regression,
@@ -29,12 +30,7 @@ let
   resolv_conf = pkgs.callPackage ./resolv_conf.nix { dnsServer = dnsServer; };
   # Whether the initramfs should include evtest, a common tool to debug input devices (`/dev/input/eventX`)
   is_evtest_included = false;
-  # Standard Linux `perf` for PMU guest acceptance (`perf stat` on hardware events).
-  # nixpkgs builds it natively for x86-64. `pkgs.perf` also evaluates for the
-  # riscv64 cross system, but that build is not verified here, so a `perf` built
-  # on a riscv64 machine can instead be injected at `./perf-riscv64/perf`. See
-  # that directory's README, `tools/pmu/build_riscv_perf.sh`, and the acceptance
-  # steps in `docs/pmu/DESIGN_AND_ABI.md`.
+  # Preserve the existing manual RISC-V perf injection path.
   riscv_perf_dir = ./perf-riscv64;
   has_riscv_perf =
     hostPlatform.isRiscV64 && builtins.pathExists (riscv_perf_dir + "/perf");
@@ -48,7 +44,8 @@ let
   ++ lib.optionals (conformance != null) [ conformance.package ]
   ++ lib.optionals (regression != null) [ regression.package ]
   ++ lib.optionals is_evtest_included [ pkgs.evtest ]
-  ++ lib.optionals hostPlatform.isx86_64 [ pkgs.perf ];
+  # `perf` comes from the same target package set as the guest regression tests.
+  ++ lib.optionals (perf != null) [ perf ];
 in
 stdenvNoCC.mkDerivation {
   name = "initramfs";
@@ -61,14 +58,8 @@ stdenvNoCC.mkDerivation {
     ln -sfn usr/lib $out/lib
     ln -sfn usr/lib64 $out/lib64
     cp -r ${busybox}/bin/* $out/bin/
-    ${lib.optionalString hostPlatform.isx86_64 ''
-      cp -r ${pkgs.perf}/bin/* $out/bin/
-      # `bin/perf` is a wrapper that execs the real binary from the Nix store,
-      # and the binary is dynamically linked against store paths. The closure
-      # copy below skips `all_pkgs` themselves, so install this package's own
-      # store path here; otherwise the wrapper points at a missing file.
-      mkdir -p $out/nix/store
-      cp -r ${pkgs.perf} $out/nix/store/
+    ${lib.optionalString (perf != null) ''
+      cp -r ${perf}/bin/* $out/bin/
     ''}
     ${lib.optionalString has_riscv_perf ''
       install -Dm755 ${riscv_perf_dir}/perf $out/bin/perf
@@ -111,6 +102,10 @@ stdenvNoCC.mkDerivation {
     # including the packages themselves.
     # The output of `writeClosure` is equivalent to `nix-store -q --requisites`.
     mkdir -p $out/nix/store
+    ${lib.optionalString (perf != null) ''
+      # The perf wrapper refers to its original store path and hidden binary.
+      cp -r ${perf} $out/nix/store/
+    ''}
     pkg_path=${lib.strings.concatStringsSep ":" all_pkgs}
     while IFS= read -r dep_path; do
       if [[ "$pkg_path" == *"$dep_path"* ]]; then

@@ -91,18 +91,16 @@ static void abi_errors(void)
 	int fd = pmu_open_attr(&attr, 0, -1, -1, 0);
 	CHECK(fd >= 0);
 	close(fd);
-
-	// `perf stat` always sets `PERF_SAMPLE_IDENTIFIER`, even for pure counting.
-	attr = pmu_attr(0, 'u');
 	attr.sample_type = PERF_SAMPLE_IDENTIFIER;
 	fd = pmu_open_attr(&attr, 0, -1, -1, 0);
 	CHECK(fd >= 0);
 	close(fd);
-
-	// Every other sample bit still implies real sampling and stays rejected.
-	attr = pmu_attr(0, 'u');
-	attr.sample_type = PERF_SAMPLE_IDENTIFIER | PERF_SAMPLE_IP;
+	attr.sample_period = 1;
 	EXPECT_ERR(pmu_open_attr(&attr, 0, -1, -1, 0), EOPNOTSUPP);
+	attr.sample_period = 0;
+	attr.sample_type |= PERF_SAMPLE_IP;
+	EXPECT_ERR(pmu_open_attr(&attr, 0, -1, -1, 0), EOPNOTSUPP);
+	attr.sample_type = PERF_SAMPLE_IDENTIFIER;
 
 	((unsigned char *)&attr)[64] = 1;
 	EXPECT_ERR(pmu_open_attr(&attr, 0, -1, -1, 0), E2BIG);

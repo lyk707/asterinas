@@ -21,42 +21,15 @@ impl Event {
     }
 }
 
-/// The privilege levels a counting event observes.
-///
-/// "Count nothing" is deliberately not representable: a configuration that
-/// excludes both levels is meaningless and is rejected before this type exists.
+/// The execution privilege levels included in a hardware event.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CountingScope {
-    /// Count only user-mode (CPL3 / U-mode) execution.
+    /// User-mode execution only.
     User,
-    /// Count only kernel-mode (CPL0 / S-mode) execution.
+    /// Kernel-mode execution only.
     Kernel,
-    /// Count execution in both modes.
+    /// Both user-mode and kernel-mode execution.
     UserAndKernel,
-}
-
-impl CountingScope {
-    /// Builds a scope from the two privilege filters, rejecting "exclude all".
-    ///
-    /// Returns `None` when both levels are excluded.
-    pub const fn from_filters(include_user: bool, include_kernel: bool) -> Option<Self> {
-        match (include_user, include_kernel) {
-            (true, true) => Some(Self::UserAndKernel),
-            (true, false) => Some(Self::User),
-            (false, true) => Some(Self::Kernel),
-            (false, false) => None,
-        }
-    }
-
-    /// Returns whether user-mode execution is counted.
-    pub const fn counts_user(self) -> bool {
-        matches!(self, Self::User | Self::UserAndKernel)
-    }
-
-    /// Returns whether kernel-mode execution is counted.
-    pub const fn counts_kernel(self) -> bool {
-        matches!(self, Self::Kernel | Self::UserAndKernel)
-    }
 }
 
 /// A hardware event and its requested privilege-level filter.
@@ -77,19 +50,20 @@ impl EventConfig {
         self.event
     }
 
-    /// Returns the privilege levels this event observes.
-    pub const fn scope(&self) -> CountingScope {
-        self.scope
-    }
-
     /// Returns whether execution in user mode (CPL3 / U-mode) is counted.
     pub const fn is_user_counted(&self) -> bool {
-        self.scope.counts_user()
+        matches!(
+            self.scope,
+            CountingScope::User | CountingScope::UserAndKernel
+        )
     }
 
     /// Returns whether execution in kernel mode (CPL0 / S-mode) is counted.
     pub const fn is_kernel_counted(&self) -> bool {
-        self.scope.counts_kernel()
+        matches!(
+            self.scope,
+            CountingScope::Kernel | CountingScope::UserAndKernel
+        )
     }
 }
 

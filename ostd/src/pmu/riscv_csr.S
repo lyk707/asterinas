@@ -2,10 +2,9 @@
 
 .text
 
-.option push
-.option norvc
-.option norelax
-
+    .option push
+    .option norvc
+    .option norelax
 .balign 4
 .global __pmu_read_counter_csr
 .type __pmu_read_counter_csr, @function
@@ -33,5 +32,4 @@ __pmu_csr_failed:
     li a0, 1
     ret
 .size __pmu_read_counter_csr, .-__pmu_read_counter_csr
-
-.option pop
+    .option pop

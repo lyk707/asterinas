@@ -11,7 +11,7 @@
 use core::arch::{asm, global_asm};
 
 use super::{BackendKind, ConfigFailure, EventConfig, PmuCaps, PmuError, Result};
-use crate::arch::{cpu::cpuid::cpuid, trap::TrapFrame};
+use crate::arch::{cpu::cpuid, trap::TrapFrame};
 
 global_asm!(include_str!("x86_msr.S"));
 
@@ -88,7 +88,7 @@ pub(super) fn probe() -> Result<PmuCaps> {
         return Err(PmuError::Unsupported);
     }
 
-    let base_leaf = cpuid(0, 0).ok_or(PmuError::Unsupported)?;
+    let base_leaf = cpuid::cpuid(0, 0).ok_or(PmuError::Unsupported)?;
     let mut vendor = [0u8; 12];
     vendor[0..4].copy_from_slice(&base_leaf.ebx.to_le_bytes());
     vendor[4..8].copy_from_slice(&base_leaf.edx.to_le_bytes());
@@ -142,7 +142,7 @@ unsafe extern "C" {
 }
 
 fn probe_intel() -> Result<PmuCaps> {
-    let pmu_leaf = cpuid(CPUID_INTEL_PMU_LEAF, 0).ok_or(PmuError::Unsupported)?;
+    let pmu_leaf = cpuid::cpuid(CPUID_INTEL_PMU_LEAF, 0).ok_or(PmuError::Unsupported)?;
     let version = pmu_leaf.eax & 0xff;
     let fixed_count = pmu_leaf.edx & 0x1f;
     let width_bits = ((pmu_leaf.edx >> 5) & 0xff) as u8;
@@ -168,7 +168,7 @@ fn probe_intel() -> Result<PmuCaps> {
 }
 
 fn probe_amd() -> Result<PmuCaps> {
-    let sig_eax = cpuid(1, 0).ok_or(PmuError::Unsupported)?.eax;
+    let sig_eax = cpuid::cpuid(1, 0).ok_or(PmuError::Unsupported)?.eax;
     let base_family = (sig_eax >> 8) & 0x0f;
     let family = if base_family == 0x0f {
         base_family + ((sig_eax >> 20) & 0xff)
@@ -176,14 +176,14 @@ fn probe_amd() -> Result<PmuCaps> {
         base_family
     };
 
-    let ext_max = cpuid(CPUID_EXT_MAX_LEAF, 0)
+    let ext_max = cpuid::cpuid(CPUID_EXT_MAX_LEAF, 0)
         .ok_or(PmuError::Unsupported)?
         .eax;
     if ext_max < CPUID_EXT_FEATURES_LEAF {
         return Err(PmuError::Unsupported);
     }
 
-    let ext_features = cpuid(CPUID_EXT_FEATURES_LEAF, 0).ok_or(PmuError::Unsupported)?;
+    let ext_features = cpuid::cpuid(CPUID_EXT_FEATURES_LEAF, 0).ok_or(PmuError::Unsupported)?;
     if !(AMD_MIN_ZEN_FAMILY..=AMD_MAX_ZEN_FAMILY).contains(&family)
         || ext_features.ecx & CPUID_AMD_PERFCTR_EXT_CORE_BIT == 0
     {
@@ -194,7 +194,7 @@ fn probe_amd() -> Result<PmuCaps> {
     read_msr(MSR_AMD64_PERF_CTL0 + 2)?;
 
     let v2_leaf = if ext_max >= CPUID_AMD_PMU_V2_LEAF {
-        let leaf = cpuid(CPUID_AMD_PMU_V2_LEAF, 0).ok_or(PmuError::Unsupported)?;
+        let leaf = cpuid::cpuid(CPUID_AMD_PMU_V2_LEAF, 0).ok_or(PmuError::Unsupported)?;
         Some((leaf.eax, leaf.ebx))
     } else {
         None
