@@ -65,6 +65,8 @@ static int counts_are_isolated(void)
 			return pmu_failure("per-target event");
 		if (ioctl(fds[i], PERF_EVENT_IOC_ID, &ids[i]) < 0)
 			return pmu_failure("per-target event ID");
+		if (pmu_control(fds[i], PERF_EVENT_IOC_ENABLE) < 0)
+			return pmu_failure("enable per-target event");
 	}
 	atomic_store(&targets_go, 1);
 	while (atomic_load(&targets_done) < 2)
