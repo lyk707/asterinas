@@ -31,9 +31,21 @@ pub(crate) fn recover_register_fault(frame: &mut TrapFrame) -> bool {
 
 pub(super) fn probe() -> Result<PmuCaps> {
     let scounteren: usize;
-    // SAFETY: S-mode may read its counter-access control register.
-    unsafe { asm!("csrr {}, scounteren", out(reg) scounteren, options(nomem, nostack)) };
-    // Allow user time reads, but never expose PMU data from other tasks.
+    // Firmware may initially permit U-mode to read every counter. Revoke
+    // cycle/instret/HPM access before any task can run; keep the existing time
+    // permission. This register belongs to S-mode and is local to this hart.
+    // SAFETY: The caller initializes this CPU's PMU with local IRQs disabled.
+    // S-mode may clear its own counter-access bits; this only removes access.
+    unsafe {
+        asm!(
+            "csrrc zero, scounteren, {mask}",
+            "csrr {remaining}, scounteren",
+            mask = in(reg) !(1usize << 1),
+            remaining = out(reg) scounteren,
+            options(nomem, nostack),
+        )
+    };
+    // Fail closed if the hardware did not honor the access restriction.
     if scounteren & !(1 << 1) != 0 {
         return Err(PmuError::Unsupported);
     }

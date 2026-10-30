@@ -21,7 +21,7 @@ use ostd::{
     sync::LocalIrqDisabled,
 };
 
-use super::observation::ActiveTime;
+use super::{activity::EventActivity, observation::ActiveTime};
 use crate::prelude::*;
 
 /// Number of hardware event slots managed per thread (`CpuCycles` and `Instructions`).
@@ -121,6 +121,7 @@ impl PerfContext {
                 id,
             };
             state.records[slot] = Some(Record {
+                _activity: EventActivity::new(),
                 ticket,
                 spec,
                 is_enabled,
@@ -359,6 +360,7 @@ struct State {
 
 #[derive(Debug)]
 struct Record {
+    _activity: EventActivity,
     ticket: Ticket,
     spec: EventSpec,
     is_enabled: bool,

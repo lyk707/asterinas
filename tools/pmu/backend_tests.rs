@@ -15,10 +15,144 @@ mod types;
 use types::{
     BackendKind, ConfigFailure, CountingScope, Event, EventConfig, PmuCaps, PmuError, Result,
 };
+#[path = "../../kernel/core/src/events/perf/activity.rs"]
+mod activity;
+#[path = "../../ostd/src/pmu/retirement.rs"]
+mod retirement;
 #[path = "../../ostd/src/pmu/sbi_counter.rs"]
 mod sbi_counter;
 #[path = "../../ostd/src/pmu/x86_counter.rs"]
 mod x86_counter;
+
+#[test]
+fn retired_cleanup_backs_off_then_stops_touching_faulted_hardware() {
+    let mut cleanup = retirement::Cleanup::new();
+    let mut attempts = Vec::new();
+    for tick in 0..10_000 {
+        let result = cleanup.attempt(tick, || {
+            attempts.push(tick);
+            Err(PmuError::HardwareFault)
+        });
+        assert!(result.is_none_or(|r| r == Err(PmuError::HardwareFault)));
+    }
+    assert_eq!(attempts, [0, 1, 3, 7, 15, 31, 63, 127]);
+    assert!(cleanup.is_quarantined());
+    assert!(
+        cleanup
+            .attempt(u64::MAX, || panic!("quarantined hardware accessed"))
+            .is_none()
+    );
+}
+
+#[test]
+fn retired_cleanup_can_recover_without_access_during_backoff() {
+    let mut cleanup = retirement::Cleanup::new();
+    assert_eq!(
+        cleanup.attempt(10, || Err(PmuError::HardwareFault)),
+        Some(Err(PmuError::HardwareFault))
+    );
+    assert!(
+        cleanup
+            .attempt(10, || panic!("retry before deadline"))
+            .is_none()
+    );
+    assert_eq!(cleanup.attempt(11, || Ok(())), Some(Ok(())));
+    assert!(!cleanup.is_quarantined());
+}
+
+#[test]
+fn retired_cleanup_deadline_saturates_without_infinite_retry() {
+    let mut cleanup = retirement::Cleanup::new();
+    for _ in 0..8 {
+        assert_eq!(
+            cleanup.attempt(u64::MAX, || Err(PmuError::HardwareFault)),
+            Some(Err(PmuError::HardwareFault))
+        );
+    }
+    assert!(cleanup.is_quarantined());
+    assert!(
+        cleanup
+            .attempt(u64::MAX, || panic!("retry budget exhausted"))
+            .is_none()
+    );
+}
+
+#[test]
+fn permanent_amd_release_fault_is_bounded_by_production_cleanup_policy() {
+    reset_msrs(AMD_GLOBAL, 0);
+    let mut token = amd();
+    let mask = token.mask();
+    let mut cleanup = retirement::Cleanup::new();
+    MSRS.with_borrow_mut(|state| {
+        state.accesses.clear();
+        state
+            .faults
+            .extend(std::iter::repeat_n((true, AMD_LOCAL), 8));
+    });
+    for tick in 0..10_000 {
+        let _ = cleanup.attempt(tick, || token.release());
+    }
+    assert!(cleanup.is_quarantined());
+    assert_eq!(token.mask(), mask); // Unconfirmed ownership is retained.
+    MSRS.with_borrow(|state| {
+        assert_eq!(
+            state
+                .accesses
+                .iter()
+                .filter(|(write, msr, _)| *write && *msr == AMD_LOCAL)
+                .count(),
+            8
+        );
+        assert!(state.accesses.len() <= 24);
+    });
+}
+
+#[test]
+fn permanent_sbi_release_fault_preserves_mapping_and_bounds_ecalls() {
+    reset_sbi();
+    let mut token = sbi();
+    let mut cleanup = retirement::Cleanup::new();
+    SBI.with_borrow_mut(|state| {
+        state.calls.clear();
+        state.faults.extend(std::iter::repeat_n((4, -1), 8));
+    });
+    for tick in 0..10_000 {
+        let _ = cleanup.attempt(tick, || token.release());
+    }
+    assert!(cleanup.is_quarantined());
+    SBI.with_borrow(|state| {
+        assert!(state.mapped);
+        assert_eq!(state.calls.len(), 16); // START + failed STOP|RESET, eight attempts.
+    });
+}
+
+#[test]
+fn event_activity_tracks_record_lifetime_across_threads_and_rollback() {
+    assert!(!activity::has_events());
+    let owner = activity::EventActivity::new();
+    let threads: Vec<_> = (0..8)
+        .map(|_| {
+            std::thread::spawn(|| {
+                for _ in 0..1_000 {
+                    let _record = activity::EventActivity::new();
+                    assert!(activity::has_events());
+                }
+            })
+        })
+        .collect();
+    for thread in threads {
+        thread.join().unwrap();
+    }
+    assert!(activity::has_events());
+    let result: core::result::Result<(), ()> = (|| {
+        let _failed_record = activity::EventActivity::new();
+        Err(())?;
+        Ok(())
+    })();
+    assert!(result.is_err() && activity::has_events());
+    drop(owner);
+    assert!(!activity::has_events());
+}
 
 const AMD_LOCAL: u32 = 0xc001_0200;
 const AMD_GLOBAL: u32 = 0xc000_0301;

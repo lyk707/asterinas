@@ -51,7 +51,11 @@ pub(super) fn sys_perf_event_open(
 
     use crate::{
         events::perf::{EventSpec, PerfEventFile},
-        process::{credentials::capabilities::CapSet, pid_table},
+        process::{
+            credentials::capabilities::CapSet,
+            pid_table,
+            posix_thread::{AsPosixThread, alien_access::AlienAccessMode},
+        },
     };
 
     if flags & !PERF_FLAG_FD_CLOEXEC != 0 || pid < -1 || cpu < -1 || group_fd < -1 {
@@ -135,6 +139,15 @@ pub(super) fn sys_perf_event_open(
             .ok_or_else(|| {
                 Error::with_message(Errno::ESRCH, "the PMU target thread does not exist")
             })?;
+        // CAP_PERFMON authorizes hardware monitoring, while alien-access hooks
+        // independently authorize access to this target. This intentionally
+        // applies a stricter cross-process policy than Linux's CAP_PERFMON bypass.
+        thread
+            .as_posix_thread()
+            .ok_or_else(|| {
+                Error::with_message(Errno::ESRCH, "the PMU target is not a POSIX thread")
+            })?
+            .check_alien_access_from(ctx.posix_thread, AlienAccessMode::READ_WITH_REAL_CREDS)?;
         (thread.perf().clone(), pid as u32)
     };
 

@@ -5,6 +5,7 @@
 //! Coordinates per-CPU PMU initialization, timer/IPI sampling callbacks, and
 //! error translation between [`ostd::pmu`] and Linux `errno` codes.
 
+mod activity;
 pub(crate) mod attributes;
 mod context;
 mod file;
@@ -40,7 +41,11 @@ pub(crate) fn init_on_cpu() {
 /// Used both as a local timer callback and as a cross-CPU IPI handler. Never
 /// blocks, touches user memory, sends nested IPIs, or acquires sleeping locks.
 pub(super) fn sync_current() {
+    // Hardware cleanup outlives software event records when release fails.
     ostd::pmu::collect_retired();
+    if !activity::has_events() {
+        return;
+    }
     if let Some(thread) = Thread::current() {
         thread.perf().on_tick();
     }

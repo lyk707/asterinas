@@ -11,12 +11,16 @@
 //! active handles before migrating a task across CPUs.
 
 mod accounting;
+mod retirement;
 #[cfg(target_arch = "riscv64")]
 mod sbi_counter;
 mod types;
 #[cfg(target_arch = "x86_64")]
 mod x86_counter;
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use retirement::Cleanup;
 use types::ConfigFailure;
 pub use types::{BackendKind, CountingScope, Event, EventConfig, PmuCaps, PmuError, Result};
 #[cfg(target_arch = "x86_64")]
@@ -37,6 +41,7 @@ use crate::{
     cpu_local,
     irq::{self, DisabledLocalIrqGuard},
     sync::{LocalIrqDisabled, SpinLock},
+    timer::Jiffies,
 };
 
 /// The maximum number of concurrent counter allocations managed per CPU.
@@ -76,7 +81,9 @@ pub fn configure(config: EventConfig, irq_guard: &DisabledLocalIrqGuard) -> Resu
         return Err(PmuError::UnsupportedFilter);
     }
 
-    collect_locked(&mut local);
+    collect_locked(&mut local, cpu);
+    // Cleanup may have exhausted its retries and quarantined this CPU's PMU.
+    local.caps.unwrap_or(Err(PmuError::Unsupported))?;
 
     let slot = config.event().index();
     if local.records[slot].is_some() {
@@ -103,11 +110,12 @@ pub fn configure(config: EventConfig, irq_guard: &DisabledLocalIrqGuard) -> Resu
                     token,
                     is_running: false,
                     is_retired: true,
+                    cleanup: Cleanup::new(),
                     fault: Some(failure.error),
                     total: 0,
                     last: 0,
                 });
-                collect_locked(&mut local);
+                collect_locked(&mut local, cpu);
             } else if failure.error == PmuError::HardwareFault {
                 // Firmware gave no trustworthy resource identity; mark CPU PMU faulted.
                 local.caps = Some(Err(failure.error));
@@ -122,6 +130,7 @@ pub fn configure(config: EventConfig, irq_guard: &DisabledLocalIrqGuard) -> Resu
         token,
         is_running: false,
         is_retired: false,
+        cleanup: Cleanup::new(),
         fault: None,
         total: 0,
         last: initial_raw & accounting::mask(width_bits),
@@ -218,13 +227,17 @@ pub fn release(handle: CounterHandle, irq_guard: &DisabledLocalIrqGuard) -> Resu
             return Err(PmuError::InvalidHandle);
         }
 
-        let release_res = record.token.release();
+        record.is_retired = true;
+        let release_res = record
+            .cleanup
+            .attempt(Jiffies::elapsed().as_u64(), || record.token.release())
+            .unwrap_or(Err(PmuError::HardwareFault));
         if release_res.is_ok() {
             local.records[handle.slot] = None;
         } else {
-            record.is_retired = true;
             record.fault = Some(PmuError::HardwareFault);
         }
+        refresh_collection_state(&mut local, handle.cpu);
         release_res
     };
 
@@ -239,8 +252,18 @@ pub fn counter_width(handle: &CounterHandle, irq_guard: &DisabledLocalIrqGuard) 
 
 /// Retries deferred cleanup of retired counter tokens on the current CPU.
 pub fn collect_retired() {
+    // This is an advisory fast path. In task context, migration can at most
+    // defer cleanup until the next owner-CPU timer callback; configure also
+    // collects under LOCAL's lock before allocating a counter.
+    if !NEEDS_COLLECTION
+        .get_on_cpu(CpuId::current_racy())
+        .load(Ordering::Acquire)
+    {
+        return;
+    }
     let irq_guard = irq::disable_local();
-    collect_locked(&mut LOCAL.get_on_cpu(irq_guard.current_cpu()).lock());
+    let cpu = irq_guard.current_cpu();
+    collect_locked(&mut LOCAL.get_on_cpu(cpu).lock(), cpu);
 }
 
 impl Drop for CounterHandle {
@@ -255,8 +278,9 @@ impl Drop for CounterHandle {
                 return;
             }
             record.is_retired = true;
+            refresh_collection_state(&mut local, self.cpu);
             if self.cpu == irq_guard.current_cpu() {
-                collect_locked(&mut local);
+                collect_locked(&mut local, self.cpu);
                 return;
             }
         }
@@ -270,6 +294,7 @@ impl Drop for CounterHandle {
 // ---------------------------------------------------------------------------
 
 cpu_local! {
+    static NEEDS_COLLECTION: AtomicBool = AtomicBool::new(false);
     static LOCAL: SpinLock<LocalPmu, LocalIrqDisabled> = SpinLock::new(LocalPmu {
         caps: None,
         generations: [0; MAX_CPU_COUNTERS],
@@ -289,6 +314,7 @@ struct Record {
     token: backend::Token,
     is_running: bool,
     is_retired: bool,
+    cleanup: Cleanup,
     fault: Option<PmuError>,
     total: u64,
     last: u64,
@@ -335,13 +361,36 @@ fn observe(record: &mut Record) -> Result<u64> {
     result
 }
 
-fn collect_locked(local: &mut LocalPmu) {
+fn collect_locked(local: &mut LocalPmu, cpu: CpuId) {
+    let now = Jiffies::elapsed().as_u64();
     for slot in &mut local.records {
         if let Some(record) = slot.as_mut()
             && record.is_retired
-            && record.token.release().is_ok()
+            && matches!(
+                record.cleanup.attempt(now, || record.token.release()),
+                Some(Ok(()))
+            )
         {
             *slot = None;
         }
     }
+    refresh_collection_state(local, cpu);
+}
+
+// Called under LOCAL's lock, including when a remote Drop retires a token.
+fn refresh_collection_state(local: &mut LocalPmu, cpu: CpuId) {
+    let mut needs_collection = false;
+    for record in local.records.iter().flatten().filter(|r| r.is_retired) {
+        if record.cleanup.is_quarantined() {
+            // An unconfirmed release cannot make the counter reusable. Keep
+            // its token reserved, reject new allocations, and let existing
+            // handles continue through stop/release to settle their resources.
+            local.caps = Some(Err(PmuError::HardwareFault));
+        } else {
+            needs_collection = true;
+        }
+    }
+    NEEDS_COLLECTION
+        .get_on_cpu(cpu)
+        .store(needs_collection, Ordering::Release);
 }

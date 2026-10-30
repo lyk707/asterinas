@@ -342,6 +342,108 @@ static void permissions(void)
 	puts("PASS: capability-free caller cannot open a hardware event");
 }
 
+#if defined(__riscv)
+static void user_counter_access_is_denied(void)
+{
+	// Run with an active event too: SBI configuration must not reopen U-mode
+	// access to counters shared by different tasks on the same hart.
+	int fd = pmu_open(0, 'u', 0, 0);
+	CHECK(fd >= 0 && pmu_control(fd, PERF_EVENT_IOC_ENABLE) == 0);
+	for (int counter = 0; counter < 3; ++counter) {
+		pid_t child = fork();
+		CHECK(child >= 0);
+		if (!child) {
+			unsigned long value;
+			if (counter == 0)
+				__asm__ volatile("rdcycle %0" : "=r"(value));
+			else if (counter == 1)
+				__asm__ volatile("rdinstret %0" : "=r"(value));
+			else
+				__asm__ volatile("csrr %0, hpmcounter3"
+						 : "=r"(value));
+			_exit(0);
+		}
+		int status;
+		CHECK(waitpid(child, &status, 0) == child &&
+		      WIFSIGNALED(status) && WTERMSIG(status) == SIGILL);
+	}
+	CHECK(close(fd) == 0);
+	puts("PASS: RISC-V U-mode cycle/instret/HPM CSR reads denied with active perf event");
+}
+#endif
+
+static void restrict_capabilities(uint64_t mask)
+{
+	struct __user_cap_header_struct header = {
+		.version = _LINUX_CAPABILITY_VERSION_3, .pid = 0
+	};
+	struct __user_cap_data_struct data[2] = { { 0 }, { 0 } };
+	data[0].effective = data[0].permitted = (uint32_t)mask;
+	data[1].effective = data[1].permitted = (uint32_t)(mask >> 32);
+	CHECK(syscall(SYS_capset, &header, data) == 0);
+}
+
+static void alien_access_permissions(void)
+{
+	// Asterinas deliberately requires both monitoring capability and alien
+	// access permission. Linux's CAP_PERFMON bypass is not this test's contract.
+	int gate[2], ready[2];
+	CHECK(pipe(gate) == 0 && pipe(ready) == 0);
+	pid_t target = fork();
+	CHECK(target >= 0);
+	if (!target) {
+		close(gate[1]);
+		close(ready[0]);
+		CHECK(setgid(1001) == 0 && setuid(1001) == 0);
+		char byte = 'R';
+		CHECK(pmu_byte(ready[1], &byte, 1) == 0);
+		CHECK(pmu_byte(gate[0], &byte, 0) == 0);
+		_exit(0);
+	}
+	close(gate[0]);
+	close(ready[1]);
+	char byte;
+	CHECK(pmu_byte(ready[0], &byte, 0) == 0);
+	pid_t same_uid = getpid();
+	for (int allow_ptrace = 0; allow_ptrace < 2; ++allow_ptrace) {
+		pid_t observer = fork();
+		CHECK(observer >= 0);
+		if (!observer) {
+			uint64_t mask = UINT64_C(1) << CAP_PERFMON;
+			if (allow_ptrace)
+				mask |= UINT64_C(1) << CAP_SYS_PTRACE;
+			restrict_capabilities(mask);
+			// These opens must succeed with CAP_PERFMON alone, including
+			// an explicit self PID and a same-UID process outside our group.
+			pid_t allowed[] = { 0, getpid(), same_uid };
+			for (size_t i = 0;
+			     i < sizeof(allowed) / sizeof(allowed[0]); ++i) {
+				int fd = pmu_open(0, 'u', allowed[i], 0);
+				CHECK(fd >= 0);
+				CHECK(close(fd) == 0);
+			}
+			if (!allow_ptrace) {
+				EXPECT_ERR(pmu_open(0, 'u', target, 0), EPERM);
+			} else {
+				int fd = pmu_open(0, 'u', target, 0);
+				CHECK(fd >= 0);
+				CHECK(close(fd) == 0);
+			}
+			_exit(0);
+		}
+		int status;
+		CHECK(waitpid(observer, &status, 0) == observer &&
+		      WIFEXITED(status) && WEXITSTATUS(status) == 0);
+	}
+	CHECK(pmu_byte(gate[1], &byte, 1) == 0);
+	int status;
+	CHECK(waitpid(target, &status, 0) == target && WIFEXITED(status) &&
+	      WEXITSTATUS(status) == 0);
+	close(gate[1]);
+	close(ready[0]);
+	puts("PASS: CAP_PERFMON self/same-UID access, cross-UID denial, SYS_PTRACE authorization");
+}
+
 static int pmu_test_getcpu(void)
 {
 	unsigned int cpu = 0;
@@ -462,6 +564,10 @@ int main(int argc, char **argv)
 	remote_and_exit();
 	fork_and_cloexec(argv[0]);
 	permissions();
+#if defined(__riscv)
+	user_counter_access_is_denied();
+#endif
+	alien_access_permissions();
 	cpu_filter();
 	puts("PASS: counting regression suite (migration is a separate test)");
 	return 0;
