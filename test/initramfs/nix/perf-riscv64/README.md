@@ -1,5 +1,12 @@
 # riscv64 `perf` for PMU guest acceptance
 
+The 2026-10-30 QEMU/OpenSBI validation cross-built standard perf 6.18.7 and
+ran all ten rounds successfully in a minimal guest rootfs. Perf 6.5.6 fell
+back to default events in this guest and did not pass the explicit-event
+acceptance. See [the validation report](../../../../docs/pmu/RISCV_VALIDATION_20261030.md)
+for the working compiler/runtime environment and its limits. The full Nix
+cross-initramfs path below remains separate from that tested minimal rootfs.
+
 `nixpkgs` cross-builds the RISC-V initramfs and does not cross-build
 `linuxPackages.perf`, so this directory is a manual injection point.
 `initramfs.nix` copies `./perf` to `/bin/perf` when it exists.

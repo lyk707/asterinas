@@ -1,0 +1,269 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 2
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 329 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 73 KB
+Firmware Heap Offset        : 0x48000
+Firmware Heap Size          : 41 KB (total), 2 KB (reserved), 12 KB (used), 26 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : time,rfnc,ipi,base,hsm,srst,pmu,dbcn,fwft,legacy,dbtr,sse
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*,1*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008005ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x00000000ffe00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sscofpmf,sstc,zicntr,zihpm,zkr,smcntrpmf,zicboz,zicbom,svpbmt,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000003666
+Boot HART MEDELEG           : 0x0000000000f4b509
+Enter riscv_boot
+OSTD initialized. Preparing components.
+Spawn the first kernel thread
+[kernel] unpacking initramfs.cpio.gz to rootfs ...
+[kernel] initramfs is ready
+
+                                  [38;2;87;180;249m.[39m[38;2;89;185;249m.[39m[38;2;91;189;250m.[39m[38;2;93;193;250m.[39m[38;2;94;197;250m.[39m[38;2;96;201;250m.[39m
+                                [38;2;83;172;249m.[39m[38;2;85;176;249m-[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                               [38;2;82;168;249m.[39m[38;2;83;172;249m=[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                              [38;2;80;163;249m:[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                            [38;2;76;155;248m.[39m[38;2;78;159;248m-[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                           [38;2;74;151;248m.[39m[38;2;76;155;248m=[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m=[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                          [38;2;73;147;248m:[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m-[39m[38;2;85;176;249m.[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                        [38;2;69;138;248m.[39m[38;2;71;142;248m=[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m+[39m[38;2;82;168;249m:[39m [38;2;85;176;249m.[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                       [38;2;67;134;248m.[39m[38;2;69;138;248m+[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m=[39m[38;2;80;163;249m.[39m  [38;2;85;176;249m.[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m-[39m
+                     [38;2;63;125;247m.[39m[38;2;65;130;247m-[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m=[39m[38;2;78;159;248m.[39m   [38;2;85;176;249m:[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m-[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m:[39m[38;2;36;62;245m:[39m[38;2;38;66;245m-[39m[38;2;40;70;245m=[39m[38;2;42;75;245m=[39m[38;2;43;79;245m=[39m[38;2;45;83;246m=[39m[38;2;47;87;246m=[39m[38;2;49;92;246m=[39m[38;2;51;96;246m=[39m[38;2;53;100;246m=[39m[38;2;54;104;246m=[39m[38;2;56;108;247m=[39m[38;2;58;113;247m=[39m[38;2;60;117;247m=[39m[38;2;62;121;247m=[39m[38;2;63;125;247m+[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m+[39m[38;2;76;155;248m-[39m[38;2;78;159;248m-[39m[38;2;80;163;249m-[39m[38;2;82;168;249m-[39m[38;2;83;172;249m-[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m-[39m[38;2;98;206;250m:[39m[38;2;100;210;250m:[39m[38;2;102;214;251m:[39m[38;2;103;218;251m:[39m[38;2;105;223;251m:[39m[38;2;107;227;251m:[39m[38;2;109;231;251m:[39m[38;2;111;235;251m.[39m
+        [38;2;40;70;245m.[39m[38;2;42;75;245m.[39m[38;2;43;79;245m:[39m[38;2;45;83;246m-[39m[38;2;47;87;246m*[39m[38;2;49;92;246m#[39m[38;2;51;96;246m#[39m[38;2;53;100;246m#[39m[38;2;54;104;246m#[39m[38;2;56;108;247m#[39m[38;2;58;113;247m#[39m[38;2;60;117;247m#[39m[38;2;62;121;247m#[39m[38;2;63;125;247m#[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m=[39m[38;2;98;206;250m=[39m[38;2;100;210;250m=[39m[38;2;102;214;251m=[39m[38;2;103;218;251m=[39m[38;2;105;223;251m=[39m[38;2;107;227;251m:[39m[38;2;109;231;251m.[39m
+              [38;2;51;96;246m.[39m[38;2;53;100;246m:[39m[38;2;54;104;246m+[39m[38;2;56;108;247m*[39m[38;2;58;113;247m#[39m[38;2;60;117;247m#[39m[38;2;62;121;247m#[39m[38;2;63;125;247m#[39m[38;2;65;130;247m#[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m+[39m[38;2;76;155;248m+[39m[38;2;78;159;248m+[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m=[39m[38;2;98;206;250m=[39m[38;2;100;210;250m=[39m[38;2;102;214;251m=[39m[38;2;103;218;251m-[39m[38;2;105;223;251m.[39m[38;2;107;227;251m.[39m
+                 [38;2;56;108;247m.[39m[38;2;58;113;247m.[39m[38;2;60;117;247m-[39m[38;2;62;121;247m+[39m[38;2;63;125;247m#[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m=[39m[38;2;78;159;248m.[39m[38;2;80;163;249m.[39m  [38;2;85;176;249m-[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+                [38;2;54;104;246m-[39m[38;2;56;108;247m+[39m[38;2;58;113;247m=[39m[38;2;60;117;247m.[39m[38;2;62;121;247m.[39m[38;2;63;125;247m.[39m[38;2;65;130;247m:[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m=[39m[38;2;82;168;249m.[39m[38;2;83;172;249m.[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+              [38;2;51;96;246m.[39m[38;2;53;100;246m+[39m[38;2;54;104;246m*[39m[38;2;56;108;247m+[39m[38;2;58;113;247m+[39m[38;2;60;117;247m+[39m[38;2;62;121;247m=[39m[38;2;63;125;247m.[39m [38;2;67;134;248m.[39m[38;2;69;138;248m.[39m[38;2;71;142;248m=[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m-[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+            [38;2;47;87;246m.[39m[38;2;49;92;246m:[39m[38;2;51;96;246m*[39m[38;2;53;100;246m*[39m[38;2;54;104;246m*[39m[38;2;56;108;247m+[39m[38;2;58;113;247m=[39m[38;2;60;117;247m.[39m[38;2;62;121;247m.[39m     [38;2;73;147;248m.[39m[38;2;74;151;248m-[39m[38;2;76;155;248m+[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m[38;2;94;197;250m.[39m
+           [38;2;45;83;246m.[39m[38;2;47;87;246m-[39m[38;2;49;92;246m*[39m[38;2;51;96;246m*[39m[38;2;53;100;246m*[39m[38;2;54;104;246m+[39m[38;2;56;108;247m:[39m          [38;2;76;155;248m.[39m[38;2;78;159;248m-[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m
+          [38;2;43;79;245m.[39m[38;2;45;83;246m*[39m[38;2;47;87;246m#[39m[38;2;49;92;246m*[39m[38;2;51;96;246m=[39m[38;2;53;100;246m.[39m              [38;2;80;163;249m.[39m[38;2;82;168;249m=[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m
+        [38;2;40;70;245m.[39m[38;2;42;75;245m-[39m[38;2;43;79;245m*[39m[38;2;45;83;246m#[39m[38;2;47;87;246m+[39m[38;2;49;92;246m.[39m[38;2;51;96;246m.[39m                [38;2;82;168;249m.[39m[38;2;83;172;249m:[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m-[39m
+       [38;2;38;66;245m.[39m[38;2;40;70;245m=[39m[38;2;42;75;245m#[39m[38;2;43;79;245m=[39m[38;2;45;83;246m.[39m                     [38;2;85;176;249m.[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m-[39m
+      [38;2;36;62;245m:[39m[38;2;38;66;245m*[39m[38;2;40;70;245m=[39m[38;2;42;75;245m.[39m                         [38;2;89;185;249m.[39m[38;2;91;189;250m.[39m[38;2;93;193;250m.[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m:[39m[38;2;36;62;245m-[39m[38;2;38;66;245m.[39m [38;2;42;75;245mP[39m[38;2;43;79;245mr[39m[38;2;45;83;246me[39m[38;2;47;87;246ms[39m[38;2;49;92;246me[39m[38;2;51;96;246mn[39m[38;2;53;100;246mt[39m[38;2;54;104;246me[39m[38;2;56;108;247md[39m [38;2;60;117;247mb[39m[38;2;62;121;247my[39m [38;2;65;130;247mt[39m[38;2;67;134;248mh[39m[38;2;69;138;248me[39m [38;2;73;147;248mA[39m[38;2;74;151;248ms[39m[38;2;76;155;248mt[39m[38;2;78;159;248me[39m[38;2;80;163;249mr[39m[38;2;82;168;249mi[39m[38;2;83;172;249mn[39m[38;2;85;176;249ma[39m[38;2;87;180;249ms[39m [38;2;91;189;250md[39m[38;2;93;193;250me[39m[38;2;94;197;250mv[39m[38;2;96;201;250me[39m[38;2;98;206;250ml[39m[38;2;100;210;250mo[39m[38;2;102;214;251mp[39m[38;2;103;218;251me[39m[38;2;105;223;251mr[39m[38;2;107;227;251ms[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m.[39m [38;2;38;66;245mR[39m[38;2;40;70;245me[39m[38;2;42;75;245ml[39m[38;2;43;79;245me[39m[38;2;45;83;246ma[39m[38;2;47;87;246ms[39m[38;2;49;92;246me[39m[38;2;51;96;246md[39m [38;2;54;104;246mu[39m[38;2;56;108;247mn[39m[38;2;58;113;247md[39m[38;2;60;117;247me[39m[38;2;62;121;247mr[39m [38;2;65;130;247mM[39m[38;2;67;134;248mo[39m[38;2;69;138;248mz[39m[38;2;71;142;248mi[39m[38;2;73;147;248ml[39m[38;2;74;151;248ml[39m[38;2;76;155;248ma[39m [38;2;80;163;249mP[39m[38;2;82;168;249mu[39m[38;2;83;172;249mb[39m[38;2;85;176;249ml[39m[38;2;87;180;249mi[39m[38;2;89;185;249mc[39m [38;2;93;193;250mL[39m[38;2;94;197;250mi[39m[38;2;96;201;250mc[39m[38;2;98;206;250me[39m[38;2;100;210;250mn[39m[38;2;102;214;251ms[39m[38;2;103;218;251me[39m [38;2;107;227;251mv[39m[38;2;109;231;251m2[39m[38;2;111;235;251m.[39m[38;2;113;240;252m0[39m
+
+[kernel] running /init as the init process
+PMU_VERIFY_BOOT_BEGIN
+Linux (none) 5.13.0 #1 SMP Thu Jan  1 00:00:00 UTC 1970 riscv64 GNU/Linux
+PASS: C ABI size, offsets, bitfield flags and ioctl encodings
+checksum=11932747686031344341
+RV64: check the per-hart [pmu] boot messages and the trusted SBI platform contract.
+cycles:u=5616900 enabled_ns=7423900 running_ns=7423900
+PASS: a nonzero hardware count was returned through the perf fd.
+perf version 6.5.6
+checksum=110999457488882195
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+189509026;;cycles;76209400;100.00;;
+189305573;;instructions;76209400;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+./run_pmu_tests.sh: line 8: dirname: not found
+RV64: check the per-hart [pmu] boot messages and the trusted SBI platform contract.
+cycles:u=6360775 enabled_ns=4792200 running_ns=4792200
+PASS: a nonzero hardware count was returned through the perf fd.
+PASS: C ABI size, offsets, bitfield flags and ioctl encodings
+PASS: invalid arguments, zero extensions, size writeback and user page faults
+PASS: enable/disable/reset/read, IDs, dup, final close and resource reuse
+PASS: all eight supported non-group read layouts
+PASS: cycles/instructions liveness in user, kernel and combined scopes
+PASS: per-task enabled time excludes sleep and does not require perf scaling
+PASS: remote reads, scheduled segments and frozen post-exit result
+PASS: fork shares the event file, child close preserves parent, CLOEXEC closes on exec
+PASS: capability-free caller cannot open a hardware event
+PASS: RISC-V U-mode cycle/instret/HPM CSR reads denied with active perf event
+PASS: CAP_PERFMON self/same-UID access, cross-UID denial, SYS_PTRACE authorization
+CPU diagnostic: libc=1 syscall=1
+PASS: requested per-thread CPU filters
+PASS: counting regression suite (migration is a separate test)
+PASS: concurrent dup/ioctl/read, enabled-event close/reopen and per-target isolation
+PASS: C ABI size, offsets, bitfield flags and ioctl encodings
+SKIP migration: scheduler stayed on CPU 1 (requested 0); migration is unverified
+=== standard perf: round 1 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 2 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 3 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 4 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 5 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 6 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 7 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 8 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 9 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+=== standard perf: round 10 / 10 ===
+FAIL: perf output must contain two positive, fully scheduled hardware events
+PMU run: failed=10 skipped=1 logs=/tmp/pmu-review-results
+PMU_VERIFY_RESULT abi=0 workload=0 probe=0 perf_version=0 perf_stat=0 suite=1
+PMU_REVIEW_PERF_LOGS_BEGIN
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-1.csv
+# started on Fri Oct 30 10:20:40 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+127014575;;cycles;51625000;100.00;;
+127056245;;instructions;51625000;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-10.csv
+# started on Fri Oct 30 10:20:51 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+128134023;;cycles;52303900;100.00;;
+128131099;;instructions;52303900;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-2.csv
+# started on Fri Oct 30 10:20:42 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+122418100;;cycles;49837400;100.00;;
+122479625;;instructions;49837400;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-3.csv
+# started on Fri Oct 30 10:20:43 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+125928675;;cycles;51302400;100.00;;
+125892851;;instructions;51302400;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-4.csv
+# started on Fri Oct 30 10:20:44 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+125507825;;cycles;51099900;100.00;;
+125528350;;instructions;51099900;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-5.csv
+# started on Fri Oct 30 10:20:45 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+125304575;;cycles;51033300;100.00;;
+125324625;;instructions;51033300;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-6.csv
+# started on Fri Oct 30 10:20:46 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+121912575;;cycles;49676000;100.00;;
+121943399;;instructions;49676000;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-7.csv
+# started on Fri Oct 30 10:20:47 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+128956675;;cycles;52668200;100.00;;
+128931002;;instructions;52668200;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-8.csv
+# started on Fri Oct 30 10:20:48 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+128438000;;cycles;52454600;100.00;;
+128442675;;instructions;52454600;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_FILE=/tmp/pmu-review-results/perf-9.csv
+# started on Fri Oct 30 10:20:49 2026
+
+<not supported>;msec;task-clock;0;100.00;;
+<not supported>;;context-switches;0;100.00;;
+<not supported>;;cpu-migrations;0;100.00;;
+<not supported>;;page-faults;0;100.00;;
+128218175;;cycles;52516300;100.00;;
+128177124;;instructions;52516300;100.00;1.00;insn per cycle
+<not supported>;;branches;0;100.00;;
+<not supported>;;branch-misses;0;100.00;;
+PMU_REVIEW_PERF_LOGS_END
+PMU_VERIFY_BOOT_END
+PMU_VERIFY_INIT_EXIT=1

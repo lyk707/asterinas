@@ -1437,3 +1437,30 @@ events[i].fd = pmu_open(events[i].code, events[i].scope, child, 1);
 \[7\] [Introduce a device registration framework，Issue \#3743](https://github.com/asterinas/asterinas/issues/3743)。参考其先介绍 Linux 背景与范围，再解释对象关系、不同生命周期、定义位置和分阶段集成的组织方式。
 
 \[8\] [Introducing a Structural Reimplementation Design of overlayfs，Issue \#3760](https://github.com/asterinas/asterinas/issues/3760)。参考其以核心对象说明状态和引用、逐项解释字段职责、讨论替代方案，并单列缺口与非目标的写法。
+
+## 2026-10-28 审查修订补充
+
+跨进程事件现在额外经过 `READ_WITH_REAL_CREDS` 的 alien-access LSM 检查。
+此策略比 Linux 的 CAP_PERFMON 豁免更严格，不能只凭监测能力越过目标访问策略。
+无软件事件时跳过定时线程采样，硬件延迟清理使用独立的 CPU 本地提示。
+释放失败按指数间隔重试，累计失败 8 次后保留 token 并隔离该 CPU 的 PMU，
+禁止将释放未确认的槽位重新分配；该 CPU 的 PMU 在本次启动中不自动恢复。
+
+修订后通过 40 项 Rust 主机测试、14 项 runner 夹具、x86-64 PMU 开启与关闭的完整构建、
+PMU Clippy，以及 AMD KVM 客体中的权限边界、计数、并发和十轮标准 perf。
+套件仍为 `failed=0 skipped=1`，实际跨 CPU 迁移尚未验证。
+详细变更、重试边界、故障注入与硬件验证的区别见
+[本轮修订与验证记录](VALIDATION_20261028.md)。
+
+## 2026-10-30 RISC-V 客体验证补充
+
+已在 QEMU 10.2.1 / OpenSBI 1.7 中启动 RISC-V 星绽内核，完成 SBI PMU
+计数、权限、并发和标准 perf 6.18.7 十轮验证。后端初始化现在主动清除
+`scounteren` 的 cycle/instret/HPM 用户态访问权限，并回读确认；保留 time 的原有权限。
+新增回归确认活跃 perf 事件下，用户态直接读取这些 PMU CSR 会收到 `SIGILL`。
+
+本轮为 TCG 模拟客体功能验证，不能替代 RISC-V 实体 PMU 性能实测。
+套件仍有实际跨核迁移一项跳过；标准 Nix 全回归 initramfs 路线本轮未构建成功，
+使用的是缓存工具链和运行库制作的最小测试 initramfs。
+环境、源码变化、版本兼容性和原始证据见
+[RISC-V 验证记录](RISCV_VALIDATION_20261030.md)。

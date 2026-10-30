@@ -3,7 +3,8 @@
 This guide builds the kernel and initramfs from source.
 Prebuilt system images are not required.
 The tested platform is an AMD Ryzen 9 8945HX running WSL2 and Docker with KVM.
-Intel and RISC-V hardware acceptance remain separate work.
+RISC-V QEMU/OpenSBI guest execution has also been verified; physical Intel and
+RISC-V hardware acceptance remain separate work.
 
 ## Requirements
 
@@ -106,5 +107,32 @@ Preserve the guest output and the runner's CSV files before guest shutdown.
 CSV files in the guest's temporary filesystem are not automatically exported to the host.
 QEMU process exit alone is not a test verdict.
 
+Hardware monitoring requires `CAP_PERFMON` or `CAP_SYS_ADMIN` in the guest.
+Explicit targets additionally pass Asterinas's real-credentials alien-access
+checks. CAP_PERFMON alone does not authorize monitoring an unrelated UID;
+the built-in policy requires matching credentials or CAP_SYS_PTRACE.
+This is deliberately stricter than Linux's CAP_PERFMON bypass.
+
+Repeated hardware-release failures use bounded backoff and eventually quarantine
+the affected CPU's PMU until reboot. Unconfirmed counter resources remain reserved.
+
 Recorded measurements and their limits are in
-[the validation report](VALIDATION_20261027.md).
+[the latest validation report](VALIDATION_20261028.md) and
+[the previous validation report](VALIDATION_20261027.md).
+
+## RISC-V QEMU/OpenSBI validation
+
+The RISC-V kernel and guest suite were tested with QEMU 10.2.1, OpenSBI 1.7,
+two harts, and the CPU model
+`rv64,svpbmt=true,zkr=true,sscofpmf=true,smcntrpmf=true` under TCG.
+The backend initializes `scounteren` to prevent user-mode direct PMU access.
+Standard perf 6.18.7 passed; perf 6.5.6 did not handle this guest's absent PMU
+sysfs descriptions correctly. Ten perf rounds and the regression suite passed
+with the existing migration skip. These are simulated counts, not physical
+RISC-V performance measurements.
+
+The standard Nix cross-initramfs build did not complete in this run. The actual
+validation used a minimal initramfs with cached cross-built BusyBox/glibc,
+the production C tests and cross-built standard perf. See the exact environment,
+scripts, dependencies and limitations in
+[the RISC-V validation report](RISCV_VALIDATION_20261030.md).

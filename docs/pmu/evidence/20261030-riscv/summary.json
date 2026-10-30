@@ -1,0 +1,81 @@
+{
+  "date_local": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "base_commit": "8cfb392649174235455cc8aeb8645ebbc46967f7",
+  "environment": "RISC-V QEMU TCG simulated guest, not physical RISC-V hardware",
+  "qemu": "10.2.1",
+  "opensbi": "1.7",
+  "sbi": "3.0",
+  "harts": 2,
+  "ram_gib": 2,
+  "cpu": "rv64,svpbmt=true,zkr=true,sscofpmf=true,smcntrpmf=true",
+  "perf": "6.18.7",
+  "kernel_build": "passed",
+  "riscv_clippy": "passed; no extra -Dwarnings override",
+  "host_rust_tests": 40,
+  "runner_fixtures": 14,
+  "failed": 0,
+  "skipped": 1,
+  "user_csr_direct_access": "cycle, instret and hpmcounter3 denied with SIGILL",
+  "migration": "not verified; guest scheduler did not migrate on affinity change",
+  "nix_full_regression_initramfs": "failed; used minimal rootfs from cached cross toolchain and runtime",
+  "qemu_exit": 0,
+  "probe_cycles": 6096625,
+  "perf_cycles": 14060650,
+  "perf_instructions": 14059982,
+  "rounds": [
+    {
+      "round": 1,
+      "cycles:u": 13985275,
+      "instructions:u": 13984416
+    },
+    {
+      "round": 2,
+      "cycles:u": 13950925,
+      "instructions:u": 13950454
+    },
+    {
+      "round": 3,
+      "cycles:u": 13999350,
+      "instructions:u": 13998953
+    },
+    {
+      "round": 4,
+      "cycles:u": 14708210,
+      "instructions:u": 14707589
+    },
+    {
+      "round": 5,
+      "cycles:u": 14050168,
+      "instructions:u": 14019050
+    },
+    {
+      "round": 6,
+      "cycles:u": 14168650,
+      "instructions:u": 14167791
+    },
+    {
+      "round": 7,
+      "cycles:u": 14751775,
+      "instructions:u": 14750874
+    },
+    {
+      "round": 8,
+      "cycles:u": 15970600,
+      "instructions:u": 15970057
+    },
+    {
+      "round": 9,
+      "cycles:u": 13695875,
+      "instructions:u": 13695309
+    },
+    {
+      "round": 10,
+      "cycles:u": 14346725,
+      "instructions:u": 14346253
+    }
+  ],
+  "compiled_inputs_verified": 57,
+  "physical_hardware_acceptance": false,
+  "full_acceptance_complete": false
+}

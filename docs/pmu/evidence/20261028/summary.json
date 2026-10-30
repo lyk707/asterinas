@@ -1,0 +1,31 @@
+{
+  "base_commit": "8cfb392649174235455cc8aeb8645ebbc46967f7",
+  "date_local": "2026-10-28",
+  "timezone": "Asia/Shanghai",
+  "runtime_and_build_inputs_verified": 57,
+  "host_rust_tests_passed": 40,
+  "runner_fixtures_passed": 14,
+  "pmu_kernel_build": "passed",
+  "feature_off_kernel_build": "passed",
+  "pmu_clippy": "passed; no additional -Dwarnings override",
+  "kvm_guest": {
+    "vcpus": 2,
+    "qemu_exit": 33,
+    "checks": {
+      "completed": true,
+      "no_failures": true,
+      "permission_boundary": true,
+      "per_target_isolation": true,
+      "ten_perf_rounds": true,
+      "persisted_perf_counts": true,
+      "no_panic": true
+    },
+    "passed": true,
+    "failed": 0,
+    "skipped": 1,
+    "migration": "not verified; guest scheduler did not migrate on affinity change"
+  },
+  "hardware_fault_injection": "host tests using production code; not guest hardware injection",
+  "validated_iso_sha256": "d25baa640c4281fee990af1f169d3d3f1511cff4f26f2558af8454d1ebf8e223",
+  "full_acceptance_complete": false
+}
