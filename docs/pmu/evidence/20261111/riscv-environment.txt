@@ -1,0 +1,5 @@
+Linux 721527f56eba 6.18.33.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+QEMU emulator version 10.2.1
+d6301047b88e3776a02e89353d4fefa1863534a15b481f76bcf9dac923229ebe  /root/pmu-review-20261111-riscv/rootfs/bin/perf
+375f7e0066bc982d5aa0302341e0fe756e037a0d386aaa70085a730be1081839  /root/asterinas/target/osdk/asterinas-osdk-bin.elf
+4f33c72a8f901c4fb76858eddd0fc61e22bb9cf44235f130829bcaed1cfe3d6f  /root/pmu-review-20261111-riscv/initramfs.cpio.gz

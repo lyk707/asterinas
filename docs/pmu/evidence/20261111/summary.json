@@ -1,0 +1,22 @@
+{
+  "base_commit": "41a868e8cda440e6b3923949cb6880af4547b6b2",
+  "compiled_inputs_verified": 1754,
+  "host_rust_tests": 40,
+  "runner_fixtures": 16,
+  "riscv_context_handoff_ktest": {
+    "passed": 1,
+    "failed": 0,
+    "cpus": 2
+  },
+  "riscv_guest": {
+    "failed": 0,
+    "skipped": 1,
+    "perf_rounds_user": 10,
+    "perf_rounds_user_kernel": 10
+  },
+  "x86_ktest_image_build": "passed; execution not performed",
+  "amd_kvm": "unavailable: current WSL does not expose SVM; KVM probe fails",
+  "actual_task_migration": "not verified; scheduler affinity migration remains unsupported",
+  "riscv_physical_hardware": false,
+  "full_acceptance_complete": false
+}

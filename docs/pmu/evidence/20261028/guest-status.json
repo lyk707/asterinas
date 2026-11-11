@@ -1,0 +1,17 @@
+{
+  "vcpus": 2,
+  "qemu_exit": 33,
+  "checks": {
+    "completed": true,
+    "no_failures": true,
+    "permission_boundary": true,
+    "per_target_isolation": true,
+    "ten_perf_rounds": true,
+    "persisted_perf_counts": true,
+    "no_panic": true
+  },
+  "passed": true,
+  "failed": 0,
+  "skipped": 1,
+  "migration": "not verified; guest scheduler did not migrate on affinity change"
+}

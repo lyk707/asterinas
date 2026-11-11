@@ -1,0 +1,4 @@
+[Info] [riscv] Forwarded QEMU guest port: 6035->22; 22902->8080 27257->6379 21224->5201 22741->31234 24032->31236 25243->11211
+[Info] [riscv] Forwarded QEMU guest port: 8212->22; 3138->8080 8140->6379 19639->5201 14059->31234 11140->31236 3731->11211
+    Blocking waiting for file lock on build directory
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.02s

@@ -1,0 +1,6 @@
+{
+  "/root/asterinas/target/osdk/asterinas-osdk-bin.elf": "6b25d3de2f0ae7d5c7b26e707891308bc881e7108d4b4ada196bc9b738e8c471",
+  "/root/pmu-riscv-validation-20261030/initramfs.cpio.gz": "54ee9917339e3dec44a98d2b95587eb009344f59292085944bec105a50e8b44b",
+  "/root/pmu-riscv-validation-20261030/rootfs/bin/perf": "d6301047b88e3776a02e89353d4fefa1863534a15b481f76bcf9dac923229ebe",
+  "/root/pmu-riscv-validation-20261030/linux-6.18.7.tar.xz": "b726a4d15cf9ae06219b56d87820776e34d89fbc137e55fb54a9b9c3015b8f1e"
+}

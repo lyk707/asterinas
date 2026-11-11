@@ -1,0 +1,7 @@
+Linux LAPTOP-L1996DS4 6.18.33.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+CPUs exposing SVM: 0
+Y
+crw-rw---- 1 root kvm 10, 232 Nov 11 10:10 /dev/kvm
+Could not access KVM kernel module: No such device
+qemu-system-x86_64: -accel kvm: failed to initialize kvm: No such device
+KVM probe exit=1

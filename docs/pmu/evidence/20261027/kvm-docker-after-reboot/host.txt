@@ -1,0 +1,7 @@
+2026-10-27T12:08:05+00:00
+Linux c025ca451b93 6.18.33.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+QEMU emulator version 10.2.1
+crw-rw---- 1 root 109 10, 232 Oct 27 12:08 /dev/kvm
+model name	: AMD Ryzen 9 8945HX with Radeon Graphics
+Y
+QEMU accelerator: kvm; CPU: host,pmu=on; vCPUs: 2; RAM: 4 GiB
