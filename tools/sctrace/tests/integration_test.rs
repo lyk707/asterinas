@@ -3,6 +3,34 @@
 use sctrace::{CliReporterBuilder, Patterns, SctraceBuilder, StraceLogStream};
 
 #[test]
+fn test_perf_event_open_traces() {
+    let scml = include_str!(
+        "../../../book/src/kernel/linux-compatibility/syscall-flag-coverage/system-information-and-misc/perf_event_open.scml"
+    );
+    for (extra_fields, unsupported) in [
+        ("precise_ip=0 /* arbitrary skid */, ...", 0),
+        ("inherit=0, config1=0x0", 0),
+        ("inherit=1", 1),
+        ("precise_ip=1 /* constant skid */", 1),
+        ("mmap=1", 1),
+    ] {
+        let trace = format!(
+            "perf_event_open({{type=PERF_TYPE_HARDWARE, size=PERF_ATTR_SIZE_VER0, config=PERF_COUNT_HW_CPU_CYCLES, sample_period=0, sample_type=PERF_SAMPLE_IDENTIFIER, read_format=PERF_FORMAT_TOTAL_TIME_ENABLED|PERF_FORMAT_TOTAL_TIME_RUNNING, disabled=1, exclude_kernel=1, {extra_fields}}}, 0, -1, -1, PERF_FLAG_FD_CLOEXEC) = 3\n"
+        );
+        let sctrace = SctraceBuilder::new()
+            .patterns(Patterns::from_scml(scml).unwrap())
+            .strace(StraceLogStream::from_string(&trace).unwrap())
+            .reporter(CliReporterBuilder::new().quiet().collect().build())
+            .build();
+        assert_eq!(
+            sctrace.run().unwrap().unwrap().len(),
+            unsupported,
+            "{trace}"
+        );
+    }
+}
+
+#[test]
 fn test_open_syscall() {
     let scml_content = r#"
         access_mode =

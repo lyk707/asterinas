@@ -604,6 +604,31 @@ impl Syscall<'_> {
             // ignored args.
             syscall.args.insert(0, SyscallArg::Ignored);
             syscall.args.insert(3, SyscallArg::Ignored);
+        } else if syscall.name == "perf_event_open"
+            && let Some(SyscallArg::Struct(attr)) = syscall.args.first_mut()
+        {
+            // Abbreviated strace output omits zero-valued perf attribute
+            // bitfields. Normalize them for an exact SCML struct pattern:
+            // the counting flags have explicit defaults, while other zero
+            // fields are redundant. Keep every visible nonzero field.
+            const COUNTING_FLAGS: [&str; 7] = [
+                "disabled",
+                "exclude_user",
+                "exclude_kernel",
+                "exclude_hv",
+                "exclude_idle",
+                "enable_on_exec",
+                "exclude_guest",
+            ];
+            attr.0.retain(|name, value| {
+                matches!(
+                    *name,
+                    "type" | "size" | "config" | "sample_period" | "sample_type" | "read_format"
+                ) || !matches!(value, SyscallArg::Integer("0" | "0x0"))
+            });
+            for flag in COUNTING_FLAGS {
+                attr.0.entry(flag).or_insert(SyscallArg::Integer("0"));
+            }
         }
 
         syscall

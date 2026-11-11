@@ -1,0 +1,27 @@
+name: Test PMU
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  pmu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: asterinas/kernel-dev:0.19.0-20261012
+    env:
+      RUSTUP_HOME: /root/.rustup
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run host regressions
+        run: bash tools/pmu/check.sh host
+      - name: Check perf_event_open SCML
+        run: bash tools/pmu/check.sh scml
+      - name: Install OSDK
+        run: make install_osdk
+      - name: Lint PMU for x86-64 and RISC-V
+        run: bash tools/pmu/check.sh lint

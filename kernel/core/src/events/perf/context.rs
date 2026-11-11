@@ -22,6 +22,10 @@ use ostd::{
 use super::{activity::EventActivity, observation::ActiveTime};
 use crate::prelude::*;
 
+#[cfg(ktest)]
+#[path = "tests.rs"]
+mod tests;
+
 /// Number of hardware event slots managed per thread (`CpuCycles` and `Instructions`).
 const MAX_THREAD_EVENTS: usize = 2;
 

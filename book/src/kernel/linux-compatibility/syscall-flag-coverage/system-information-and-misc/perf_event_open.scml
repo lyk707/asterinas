@@ -1,0 +1,21 @@
+// sctrace normalizes omitted zero fields. Exact matching rejects additional
+// nonzero attributes that strace decodes. See README for the runtime checks.
+// The sample_type flag pattern also matches zero.
+struct perf_counting_attr = {
+    type = PERF_TYPE_HARDWARE,
+    size,
+    config = PERF_COUNT_HW_CPU_CYCLES | PERF_COUNT_HW_INSTRUCTIONS,
+    sample_period = 0,
+    sample_type = PERF_SAMPLE_IDENTIFIER,
+    read_format = PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING | PERF_FORMAT_ID,
+    disabled = <INTEGER>,
+    exclude_user = <INTEGER>,
+    exclude_kernel = <INTEGER>,
+    exclude_hv = <INTEGER>,
+    exclude_idle = <INTEGER>,
+    enable_on_exec = <INTEGER>,
+    exclude_guest = <INTEGER>
+};
+
+// SCML cannot express a negative literal. The kernel requires group_fd == -1.
+perf_event_open(attr = <perf_counting_attr>, pid, cpu, group_fd = <INTEGER>, flags = PERF_FLAG_FD_CLOEXEC);
