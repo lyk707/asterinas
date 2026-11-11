@@ -82,6 +82,9 @@ cvm_guest = ["dep:tdx-guest", "ostd/cvm_guest", "aster-virtio/cvm_guest"]
 pvh_boot = ["ostd/pvh_boot"]
 # By default we use the Sv48 address translation mode.
 riscv_sv39_mode = ["ostd/riscv_sv39_mode"]
+pmu = ["ostd/pmu"]
+# Compatibility alias only; runtime firmware/ISA validation cannot be bypassed.
+pmu_sbi_trusted = ["pmu", "ostd/pmu_sbi_trusted"]
 
 [lints]
 workspace = true
