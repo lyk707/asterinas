@@ -1,0 +1,2 @@
+# Preserve terminal output, including intentional spaces in the guest banner.
+*.log -whitespace

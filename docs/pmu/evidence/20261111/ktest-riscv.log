@@ -1,0 +1,351 @@
+     Locking 199 packages to latest Rust 1.99.0-nightly compatible versions
+      Adding minicov v0.3.8 (available: v0.3.9)
+   Compiling compiler_builtins v0.1.160 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling zerocopy v0.8.63
+   Compiling radium v0.7.0
+   Compiling num-traits v0.2.19
+   Compiling memoffset v0.9.1
+   Compiling heapless v0.8.0
+   Compiling smoltcp v0.11.0 (https://github.com/asterinas/smoltcp?tag=r_2026-08-11_1b7629c#56ab8379)
+   Compiling serde_core v1.0.229
+   Compiling ahash v0.8.12
+   Compiling serde v1.0.229
+   Compiling alloc v0.0.0 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling tap v1.0.1
+   Compiling funty v2.0.0
+   Compiling bitflags v1.3.2
+   Compiling log v0.4.34
+   Compiling scopeguard v1.2.0
+   Compiling riscv-pac v0.2.0
+   Compiling wyz v0.5.1
+   Compiling lock_api v0.4.14
+   Compiling critical-section v1.2.0
+   Compiling gimli v0.34.0
+   Compiling sbi-spec v0.0.7
+   Compiling smallvec v1.16.3
+   Compiling embedded-hal v1.0.0
+   Compiling sbi-rt v0.0.3
+   Compiling bitvec v1.1.1
+   Compiling riscv v0.15.0
+   Compiling spin v0.9.9
+   Compiling gimli v0.28.1
+   Compiling fdt v0.1.5
+   Compiling ostd-test v0.19.0 (/root/asterinas/ostd/libs/ostd-test)
+   Compiling bit_field v0.10.3
+   Compiling align_ext v0.1.0 (/root/asterinas/ostd/libs/align_ext)
+   Compiling inventory v0.3.25
+   Compiling typeflags-util v0.1.0 (/root/asterinas/kernel/libs/typeflags-util)
+   Compiling component v0.1.0 (/root/asterinas/kernel/libs/comp-sys/component)
+   Compiling int-to-c-enum v0.1.0 (/root/asterinas/ostd/libs/int-to-c-enum)
+   Compiling aster-rights v0.1.0 (/root/asterinas/kernel/libs/aster-rights)
+   Compiling byteorder v1.5.0
+   Compiling intrusive-collections v0.9.7
+   Compiling cfg-if v1.0.5
+   Compiling hash32 v0.3.1
+   Compiling stable_deref_trait v1.2.1
+   Compiling managed v0.8.0
+   Compiling io-util v0.1.0 (/root/asterinas/kernel/libs/io-util)
+   Compiling macro_rules_attribute v0.1.3
+   Compiling unwinding v0.2.10
+   Compiling allocator-api2 v0.2.21
+   Compiling takeable v0.2.2
+   Compiling ext-trait v1.0.1
+   Compiling jhash v0.1.0 (/root/asterinas/kernel/libs/jhash)
+   Compiling extension-traits v1.0.1
+   Compiling nougat v0.2.4
+   Compiling owo-colors v4.4.0
+   Compiling never-say-never v6.6.666
+   Compiling rand_core v0.9.5
+   Compiling equivalent v1.0.3
+   Compiling once_cell v1.21.4
+   Compiling polonius-the-crab v0.2.1
+   Compiling bitflags v2.13.2
+   Compiling konst_macro_rules v0.2.19
+   Compiling foldhash v0.2.0
+   Compiling id-alloc v0.1.0 (/root/asterinas/ostd/libs/id-alloc)
+   Compiling hashbrown v0.16.1
+   Compiling konst v0.2.20
+   Compiling lending-iterator v0.1.7
+   Compiling chrono v0.4.45
+   Compiling powerfmt v0.2.1
+   Compiling adler2 v2.0.1
+   Compiling font8x8 v0.2.7
+   Compiling deranged v0.5.9
+   Compiling num-conv v0.2.2
+   Compiling time-core v0.1.9
+   Compiling zero v0.1.3
+   Compiling xmas-elf v0.10.0
+   Compiling lru v0.16.4
+   Compiling miniz_oxide v0.8.9
+   Compiling cpio-decoder v0.1.0 (/root/asterinas/kernel/libs/cpio-decoder)
+   Compiling const_format v0.2.36
+   Compiling sparse-id-alloc v0.1.0 (/root/asterinas/kernel/libs/sparse-id-alloc)
+   Compiling logo-ascii-art v0.1.0 (/root/asterinas/kernel/libs/logo-ascii-art)
+   Compiling keyable-arc v0.1.0 (/root/asterinas/kernel/libs/keyable-arc)
+   Compiling time v0.3.55
+   Compiling ostd-pod v0.4.0 (/root/asterinas/ostd/libs/ostd-pod)
+   Compiling ppv-lite86 v0.2.21
+   Compiling ostd v0.19.0 (/root/asterinas/ostd)
+   Compiling hashbrown v0.14.5
+   Compiling rand_chacha v0.9.0
+   Compiling rand v0.9.5
+   Compiling osdk-heap-allocator v0.19.0 (/root/asterinas/osdk/deps/heap-allocator)
+   Compiling fdt-util v0.1.0 (/root/asterinas/kernel/libs/fdt-util)
+   Compiling aster-console v0.1.0 (/root/asterinas/kernel/core/comps/console)
+   Compiling aster-fuse v0.1.0 (/root/asterinas/kernel/libs/aster-fuse)
+   Compiling aster-input v0.1.0 (/root/asterinas/kernel/core/comps/input)
+   Compiling aster-framebuffer v0.1.0 (/root/asterinas/kernel/core/comps/framebuffer)
+   Compiling xarray v0.1.0 (/root/asterinas/kernel/libs/xarray)
+   Compiling aster-pci v0.1.0 (/root/asterinas/kernel/core/comps/pci)
+   Compiling aster-util v0.1.0 (/root/asterinas/kernel/libs/aster-util)
+   Compiling aster-logger v0.1.0 (/root/asterinas/kernel/core/comps/logger)
+   Compiling ring-buffer v0.1.0 (/root/asterinas/kernel/libs/ring-buffer)
+   Compiling aster-cmdline v0.1.0 (/root/asterinas/kernel/core/comps/cmdline)
+   Compiling aster-softirq v0.1.0 (/root/asterinas/kernel/core/comps/softirq)
+   Compiling device-id v0.1.0 (/root/asterinas/kernel/libs/device-id)
+   Compiling aster-systree v0.1.0 (/root/asterinas/kernel/core/comps/systree)
+   Compiling aster-time v0.1.0 (/root/asterinas/kernel/core/comps/time)
+   Compiling dma-pool v0.1.0 (/root/asterinas/kernel/libs/dma-pool)
+   Compiling aster-bigtcp v0.1.0 (/root/asterinas/kernel/libs/aster-bigtcp)
+   Compiling aster-block v0.1.0 (/root/asterinas/kernel/core/comps/block)
+   Compiling aster-device v0.1.0 (/root/asterinas/kernel/core/comps/device)
+   Compiling osdk-frame-allocator v0.19.0 (/root/asterinas/osdk/deps/frame-allocator)
+   Compiling osdk-test-kernel v0.19.0 (/root/asterinas/osdk/deps/test-kernel)
+   Compiling aster-nvme v0.1.0 (/root/asterinas/kernel/core/comps/nvme)
+   Compiling aster-network v0.1.0 (/root/asterinas/kernel/core/comps/network)
+   Compiling aster-virtio v0.1.0 (/root/asterinas/kernel/core/comps/virtio)
+   Compiling aster-core v0.1.0 (/root/asterinas/kernel/core)
+   Compiling aster-core-osdk-bin v0.1.0 (/root/asterinas/target/osdk/aster-core-test-base)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 52.07s
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 2
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 329 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 73 KB
+Firmware Heap Offset        : 0x48000
+Firmware Heap Size          : 41 KB (total), 2 KB (reserved), 12 KB (used), 26 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : time,rfnc,ipi,base,hsm,srst,pmu,dbcn,fwft,legacy,dbtr,sse
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 1
+Domain0 HARTs               : 0*,1*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008005ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x000000017fe00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 1
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sscofpmf,sstc,zicntr,zihpm,zkr,smcntrpmf,zicboz,zicbom,svpbmt,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000003666
+Boot HART MEDELEG           : 0x0000000000f4b509
+Enter riscv_boot
+INFO: Initializing frame metadata for physical memory 80040000..180000000
+INFO: Adding free frames to the allocator: 80060000..80200000
+INFO: Adding free frames to the allocator: 84cfb000..17fe00000
+INFO: Adding free frames to the allocator: 17fe02000..180000000
+INFO: Initializing the kernel page table
+INFO: Creating new I/O memory allocator builder, ranges: [
+    0x0..0x80060000,
+    0x180000000..0xffffffffffffffff,
+]
+DEBUG: Try to reserve security-sensitive MMIO range: 0xc000000..0xc600000 with cache policy: Uncacheable
+INFO: Booting 1 processors
+INFO: Booting all application processors...
+INFO: Bootstrapping hart is 1, booting all other harts
+INFO: Starting hart 0
+DEBUG: Successfully started hart 0
+INFO: Detected ISA extensions: A | C | D | F | H | I | M | SSCOFPMF | SSTC | SVPBMT | ZBB | ZICBOM | ZIHINTPAUSE | ZICBOZ | ZBA | ZBS | ZICNTR | ZICSR | ZIFENCEI | ZIHPM | ZBC | ZKR | ZIHINTNTL | ZFA | ZCA | ZCD | ZAWRS | SVVPTC | ZICCRSE | SVADU | ZAAMO | ZALRSC | SMCNTRPMF
+INFO: Processor 1 started. Spinning for tasks.
+INFO: All application processors started. The BSP continues to run.
+
+[ktest runner] running 497 tests in 16 crates
+
+[ktest runner] skipping crate "aster-bigtcp".
+
+[ktest runner] skipping crate "aster-cmdline".
+
+running 142 tests in crate "aster-core"
+
+test aster_core::events::perf::tests::context_handoff_between_cpus ...WARN: framebuffer: Framebuffer not found
+DEBUG: Try to acquire security-insensitive MMIO range: 0x30000000..0x40000000 with cache policy: Uncacheable
+DEBUG: Successfully sent IPI to hart 0
+DEBUG: Performing inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)
+INFO: pci: initializing the PCI bus with bus numbers `0..=255`
+DEBUG: pci: found common device: PciCommonDevice {
+    device_id: PciDeviceId {
+        vendor_id: 0x1b36,
+        device_id: 0x8,
+        revision_id: 0x0,
+        prog_if: 0x0,
+        subclass: 0x0,
+        class: 0x6,
+    },
+    location: PciDeviceLocation {
+        bus: 0x0,
+        device: 0x0,
+        function: 0x0,
+    },
+    header_type: PciHeaderType {
+        device_type: GeneralDevice,
+        has_multi_funcs: false,
+    },
+    bar_manager: BarManager {
+        bars: [
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ],
+    },
+    capabilities: RawCapabilities {
+        msix: None,
+        vndr: [],
+    },
+}
+WARN: cmdline: duplicate kernel parameter 'console' registered; keeping last
+DEBUG: Try to acquire security-insensitive MMIO range: 0x101000..0x102000 with cache policy: Uncacheable
+DEBUG: Successfully sent IPI to hart 0
+DEBUG: Performing inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)
+DEBUG: pci: Register PCI driver: NvmePciDriver {
+    devices: UnsafeCell { .. },
+}
+[32m[     0.562][0m [34mINFO  [0m: [39m[0m[39mComponent initialize complete[0m
+[32m[     0.564][0m [34mINFO  [0m: [39m[0m[39mComponent initializing: ComponentInfo { name: "aster-virtio", path: "/root/asterinas/kernel/core/comps/virtio", priority: 2 }[0m
+[32m[     0.567][0m [92mDEBUG [0m: [39mpci: [0m[39mRegister PCI driver: VirtioPciDriver {
+    devices: UnsafeCell { .. },
+}[0m
+[32m[     0.571][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10008000..0x10009000 with cache policy: Uncacheable[0m
+[32m[     0.572][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.572][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.603][0m [34mINFO  [0m: [39mvirtio: [0m[39mFound MMIO device at 0x10008000, device ID 2, IRQ number 2[0m
+[32m[     0.605][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10007000..0x10008000 with cache policy: Uncacheable[0m
+[32m[     0.606][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.606][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.626][0m [34mINFO  [0m: [39mvirtio: [0m[39mFound MMIO device at 0x10007000, device ID 2, IRQ number 3[0m
+[32m[     0.627][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10006000..0x10007000 with cache policy: Uncacheable[0m
+[32m[     0.628][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.628][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.643][0m [34mINFO  [0m: [39mvirtio: [0m[39mFound MMIO device at 0x10006000, device ID 2, IRQ number 4[0m
+[32m[     0.645][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10005000..0x10006000 with cache policy: Uncacheable[0m
+[32m[     0.646][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.646][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.667][0m [34mINFO  [0m: [39mvirtio: [0m[39mFound MMIO device at 0x10005000, device ID 18, IRQ number 5[0m
+[32m[     0.668][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10004000..0x10005000 with cache policy: Uncacheable[0m
+[32m[     0.669][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.669][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.689][0m [34mINFO  [0m: [39mvirtio: [0m[39mFound MMIO device at 0x10004000, device ID 3, IRQ number 6[0m
+[32m[     0.690][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10003000..0x10004000 with cache policy: Uncacheable[0m
+[32m[     0.691][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.691][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.713][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10002000..0x10003000 with cache policy: Uncacheable[0m
+[32m[     0.714][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.714][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.738][0m [92mDEBUG [0m: [39m[0m[39mTry to acquire security-insensitive MMIO range: 0x10001000..0x10002000 with cache policy: Uncacheable[0m
+[32m[     0.739][0m [92mDEBUG [0m: [39m[0m[39mSuccessfully sent IPI to hart 0[0m
+[32m[     0.739][0m [92mDEBUG [0m: [39m[0m[39mPerforming inter-processor call to 0xffffffff8080d056 on CPU CpuId(
+    1,
+)[0m
+[32m[     0.765][0m [92mDEBUG [0m: [39mvirtio: [0m[39mRegister driver: VirtioMmioDriver {
+    devices: UnsafeCell { .. },
+}[0m
+[32m[     0.797][0m [92mDEBUG [0m: [39mvirtio: [0m[39mvirtio_console_config = VirtioConsoleConfig { cols: 0, rows: 0, max_nr_ports: 31, emerg_wr: 0 }[0m
+[32m[     0.801][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_desc start paddr: 140348000[0m
+[32m[     0.802][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_driver start paddr: 14034c000[0m
+[32m[     0.803][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_device start paddr: 14034d000[0m
+[32m[     0.806][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_desc start paddr: 140350000[0m
+[32m[     0.807][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_driver start paddr: 140354000[0m
+[32m[     0.808][0m [92mDEBUG [0m: [39mvirtio: [0m[39mqueue_device start paddr: 140355000[0m
+ [32mok[39m
+
+test result: [32mok[39m. 1 passed; 0 failed; 141 filtered out.
+
+[ktest runner] skipping crate "aster-device".
+
+[ktest runner] skipping crate "aster-framebuffer".
+
+[ktest runner] skipping crate "aster-nvme".
+
+[ktest runner] skipping crate "aster-softirq".
+
+[ktest runner] skipping crate "aster-systree".
+
+[ktest runner] skipping crate "aster-util".
+
+[ktest runner] skipping crate "dma-pool".
+
+[ktest runner] skipping crate "osdk-frame-allocator".
+
+[ktest runner] skipping crate "osdk-heap-allocator".
+
+[ktest runner] skipping crate "osdk-test-kernel".
+
+[ktest runner] skipping crate "ostd".
+
+[ktest runner] skipping crate "ring-buffer".
+
+[ktest runner] skipping crate "xarray".
+
+[ktest runner] All crates tested.

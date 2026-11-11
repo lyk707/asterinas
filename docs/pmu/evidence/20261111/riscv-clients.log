@@ -1,0 +1,7 @@
+make: Entering directory '/root/asterinas/test/initramfs/src/regression/io/pmu'
+CC <= /root/pmu-review-20261111-riscv/tests/io/pmu/pmu_probe
+CC <= /root/pmu-review-20261111-riscv/tests/io/pmu/pmu_regression
+CC <= /root/pmu-review-20261111-riscv/tests/io/pmu/pmu_stat
+CC <= /root/pmu-review-20261111-riscv/tests/io/pmu/pmu_stress
+CC <= /root/pmu-review-20261111-riscv/tests/io/pmu/pmu_workload
+make: Leaving directory '/root/asterinas/test/initramfs/src/regression/io/pmu'

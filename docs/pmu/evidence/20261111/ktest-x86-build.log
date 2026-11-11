@@ -1,0 +1,199 @@
+     Locking 199 packages to latest Rust 1.99.0-nightly compatible versions
+      Adding minicov v0.3.8 (available: v0.3.9)
+   Compiling compiler_builtins v0.1.160 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling zerocopy v0.8.63
+   Compiling radium v0.7.0
+   Compiling thiserror v2.0.21
+   Compiling int-to-c-enum-derive v0.1.0 (/root/asterinas/ostd/libs/int-to-c-enum/derive)
+   Compiling num-traits v0.2.19
+   Compiling x86 v0.52.0
+   Compiling padding-struct v0.2.0 (/root/asterinas/ostd/libs/padding-struct)
+   Compiling ostd-pod-macros v0.4.0 (/root/asterinas/ostd/libs/ostd-pod/macros)
+   Compiling ostd-macros v0.19.0 (/root/asterinas/ostd/libs/ostd-macros)
+   Compiling component-macro v0.1.0 (/root/asterinas/kernel/libs/comp-sys/component-macro)
+   Compiling typeflags v0.1.0 (/root/asterinas/kernel/libs/typeflags)
+   Compiling aster-rights-proc v0.1.0 (/root/asterinas/kernel/libs/aster-rights-proc)
+   Compiling memoffset v0.9.1
+   Compiling heapless v0.8.0
+   Compiling smoltcp v0.11.0 (https://github.com/asterinas/smoltcp?tag=r_2026-08-11_1b7629c#56ab8379)
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling ahash v0.8.12
+   Compiling short-vis-path v0.1.0 (/root/asterinas/kernel/libs/short-vis-path)
+   Compiling atomic-integer-wrapper v0.1.0 (/root/asterinas/kernel/libs/atomic-integer-wrapper)
+   Compiling alloc v0.0.0 (/root/.rustup/toolchains/nightly-2026-07-21-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling bitflags v2.13.2
+   Compiling bitflags v1.3.2
+   Compiling scopeguard v1.2.0
+   Compiling log v0.4.34
+   Compiling uguid v2.2.1
+   Compiling bit_field v0.10.3
+   Compiling tap v1.0.1
+   Compiling lock_api v0.4.14
+   Compiling raw-cpuid v10.7.0
+   Compiling wyz v0.5.1
+   Compiling volatile v0.4.6
+   Compiling funty v2.0.0
+   Compiling spin v0.9.9
+   Compiling ptr_meta v0.3.2
+   Compiling x86_64 v0.15.5
+   Compiling uefi-raw v0.12.0
+   Compiling multiboot2-common v0.3.0
+   Compiling lazy_static v1.5.1
+   Compiling uefi-raw v0.14.0
+   Compiling iced-x86 v1.21.0
+   Compiling int-to-c-enum v0.1.0 (/root/asterinas/ostd/libs/int-to-c-enum)
+warning: unstable feature specified for `-Ctarget-feature`: `ermsb`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `int-to-c-enum` (lib) generated 1 warning
+   Compiling bitvec v1.1.1
+   Compiling gimli v0.34.0
+   Compiling smallvec v1.16.3
+   Compiling acpi v5.2.0
+   Compiling id-alloc v0.1.0 (/root/asterinas/ostd/libs/id-alloc)
+   Compiling unwinding v0.2.10
+   Compiling multiboot2 v0.24.1
+   Compiling linux-boot-params v0.19.0 (/root/asterinas/ostd/libs/linux-bzimage/boot-params)
+warning: `linux-boot-params` (lib) generated 1 warning (1 duplicate)
+   Compiling ostd-test v0.19.0 (/root/asterinas/ostd/libs/ostd-test)
+   Compiling gimli v0.28.1
+warning: `ostd-test` (lib) generated 1 warning (1 duplicate)
+   Compiling volatile v0.6.1
+   Compiling align_ext v0.1.0 (/root/asterinas/ostd/libs/align_ext)
+warning: `id-alloc` (lib) generated 1 warning (1 duplicate)
+   Compiling inventory v0.3.25
+   Compiling typeflags-util v0.1.0 (/root/asterinas/kernel/libs/typeflags-util)
+warning: `align_ext` (lib) generated 1 warning (1 duplicate)
+   Compiling component v0.1.0 (/root/asterinas/kernel/libs/comp-sys/component)
+   Compiling aster-rights v0.1.0 (/root/asterinas/kernel/libs/aster-rights)
+warning: `typeflags-util` (lib) generated 1 warning (1 duplicate)
+   Compiling intrusive-collections v0.9.7
+   Compiling cfg-if v1.0.5
+   Compiling byteorder v1.5.0
+warning: `aster-rights` (lib) generated 1 warning (1 duplicate)
+   Compiling ostd-pod v0.4.0 (/root/asterinas/ostd/libs/ostd-pod)
+   Compiling tdx-guest v0.5.0
+   Compiling hash32 v0.3.1
+   Compiling stable_deref_trait v1.2.1
+warning: `ostd-pod` (lib) generated 1 warning (1 duplicate)
+   Compiling managed v0.8.0
+   Compiling io-util v0.1.0 (/root/asterinas/kernel/libs/io-util)
+   Compiling allocator-api2 v0.2.21
+   Compiling ext-trait v1.0.1
+   Compiling macro_rules_attribute v0.1.3
+   Compiling takeable v0.2.2
+   Compiling jhash v0.1.0 (/root/asterinas/kernel/libs/jhash)
+   Compiling nougat v0.2.4
+   Compiling extension-traits v1.0.1
+warning: `jhash` (lib) generated 1 warning (1 duplicate)
+   Compiling ppv-lite86 v0.2.21
+   Compiling ostd v0.19.0 (/root/asterinas/ostd)
+   Compiling polonius-the-crab v0.2.1
+   Compiling owo-colors v4.4.0
+warning: `io-util` (lib) generated 1 warning (1 duplicate)
+   Compiling foldhash v0.2.0
+   Compiling konst_macro_rules v0.2.19
+   Compiling rand_core v0.9.5
+   Compiling equivalent v1.0.3
+   Compiling never-say-never v6.6.666
+   Compiling once_cell v1.21.4
+   Compiling lending-iterator v0.1.7
+   Compiling hashbrown v0.16.1
+   Compiling rand_chacha v0.9.0
+warning: `component` (lib) generated 1 warning (1 duplicate)
+   Compiling konst v0.2.20
+   Compiling font8x8 v0.2.7
+   Compiling adler2 v2.0.1
+   Compiling time-core v0.1.9
+   Compiling powerfmt v0.2.1
+   Compiling zero v0.1.3
+   Compiling deranged v0.5.9
+   Compiling num-conv v0.2.2
+   Compiling xmas-elf v0.10.0
+   Compiling lru v0.16.4
+   Compiling miniz_oxide v0.8.9
+   Compiling const_format v0.2.36
+   Compiling rand v0.9.5
+   Compiling cpio-decoder v0.1.0 (/root/asterinas/kernel/libs/cpio-decoder)
+   Compiling sparse-id-alloc v0.1.0 (/root/asterinas/kernel/libs/sparse-id-alloc)
+   Compiling logo-ascii-art v0.1.0 (/root/asterinas/kernel/libs/logo-ascii-art)
+warning: `logo-ascii-art` (lib) generated 1 warning (1 duplicate)
+   Compiling keyable-arc v0.1.0 (/root/asterinas/kernel/libs/keyable-arc)
+warning: `keyable-arc` (lib) generated 1 warning (1 duplicate)
+warning: `cpio-decoder` (lib) generated 1 warning (1 duplicate)
+   Compiling time v0.3.55
+warning: `sparse-id-alloc` (lib) generated 1 warning (1 duplicate)
+   Compiling hashbrown v0.14.5
+   Compiling osdk-heap-allocator v0.19.0 (/root/asterinas/osdk/deps/heap-allocator)
+   Compiling aster-pci v0.1.0 (/root/asterinas/kernel/core/comps/pci)
+   Compiling aster-console v0.1.0 (/root/asterinas/kernel/core/comps/console)
+   Compiling aster-fuse v0.1.0 (/root/asterinas/kernel/libs/aster-fuse)
+   Compiling aster-input v0.1.0 (/root/asterinas/kernel/core/comps/input)
+   Compiling aster-cmdline v0.1.0 (/root/asterinas/kernel/core/comps/cmdline)
+   Compiling aster-framebuffer v0.1.0 (/root/asterinas/kernel/core/comps/framebuffer)
+warning: `aster-console` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-util v0.1.0 (/root/asterinas/kernel/libs/aster-util)
+warning: `aster-framebuffer` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-logger v0.1.0 (/root/asterinas/kernel/core/comps/logger)
+warning: `aster-input` (lib) generated 1 warning (1 duplicate)
+   Compiling ring-buffer v0.1.0 (/root/asterinas/kernel/libs/ring-buffer)
+warning: `aster-pci` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-softirq v0.1.0 (/root/asterinas/kernel/core/comps/softirq)
+warning: `aster-logger` (lib) generated 1 warning (1 duplicate)
+   Compiling device-id v0.1.0 (/root/asterinas/kernel/libs/device-id)
+warning: `device-id` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-systree v0.1.0 (/root/asterinas/kernel/core/comps/systree)
+warning: `aster-util` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-time v0.1.0 (/root/asterinas/kernel/core/comps/time)
+warning: `ring-buffer` (lib) generated 1 warning (1 duplicate)
+   Compiling dma-pool v0.1.0 (/root/asterinas/kernel/libs/dma-pool)
+warning: `aster-cmdline` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-bigtcp v0.1.0 (/root/asterinas/kernel/libs/aster-bigtcp)
+warning: `osdk-heap-allocator` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-block v0.1.0 (/root/asterinas/kernel/core/comps/block)
+warning: `aster-softirq` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-device v0.1.0 (/root/asterinas/kernel/core/comps/device)
+warning: `aster-time` (lib) generated 1 warning (1 duplicate)
+   Compiling xarray v0.1.0 (/root/asterinas/kernel/libs/xarray)
+warning: `aster-fuse` (lib) generated 1 warning (1 duplicate)
+   Compiling osdk-frame-allocator v0.19.0 (/root/asterinas/osdk/deps/frame-allocator)
+warning: `dma-pool` (lib) generated 1 warning (1 duplicate)
+   Compiling osdk-test-kernel v0.19.0 (/root/asterinas/osdk/deps/test-kernel)
+warning: `xarray` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-network v0.1.0 (/root/asterinas/kernel/core/comps/network)
+warning: `aster-systree` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-virtio v0.1.0 (/root/asterinas/kernel/core/comps/virtio)
+warning: `osdk-frame-allocator` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-nvme v0.1.0 (/root/asterinas/kernel/core/comps/nvme)
+warning: `aster-network` (lib) generated 1 warning (1 duplicate)
+warning: `aster-block` (lib) generated 1 warning (1 duplicate)
+warning: `osdk-test-kernel` (lib) generated 1 warning (1 duplicate)
+warning: `aster-bigtcp` (lib) generated 1 warning (1 duplicate)
+warning: `aster-device` (lib) generated 1 warning (1 duplicate)
+warning: `ostd` (lib) generated 1 warning (1 duplicate)
+warning: `aster-nvme` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-core v0.1.0 (/root/asterinas/kernel/core)
+warning: `aster-virtio` (lib) generated 1 warning (1 duplicate)
+warning: `aster-core` (lib) generated 1 warning (1 duplicate)
+   Compiling aster-core-osdk-bin v0.1.0 (/root/asterinas/target/osdk/aster-core-test-base)
+warning: `aster-core-osdk-bin` (bin "aster-core-osdk-bin") generated 1 warning (1 duplicate)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 57.86s
+grub-mkrescue: warning: cannot open directory `/usr/local/grub/share/locale': No such file or directory.
+xorriso 1.5.6 : RockRidge filesystem manipulator, libburnia project.
+
+Drive current: -outdev 'stdio:/root/asterinas/target/osdk/aster-core-osdk-bin.iso'
+Media current: stdio file, overwriteable
+Media status : is blank
+Media summary: 0 sessions, 0 data blocks, 0 data,  883g free
+Added to ISO image: directory '/'='/tmp/grub.mzvjtX'
+xorriso : UPDATE :     298 files added in 1 seconds
+Added to ISO image: directory '/'='/root/asterinas/target/osdk/iso_root'
+xorriso : UPDATE :     302 files added in 1 seconds
+xorriso : UPDATE :  77.22% done
+ISO image produced: 86029 sectors
+Written to medium : 86029 sectors at LBA 0
+Writing to 'stdio:/root/asterinas/target/osdk/aster-core-osdk-bin.iso' completed successfully.
+

@@ -1,0 +1,747 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 2
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 329 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 73 KB
+Firmware Heap Offset        : 0x48000
+Firmware Heap Size          : 41 KB (total), 2 KB (reserved), 12 KB (used), 26 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : time,rfnc,ipi,base,hsm,srst,pmu,dbcn,fwft,legacy,dbtr,sse
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*,1*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008005ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x00000000ffe00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sscofpmf,sstc,zicntr,zihpm,zkr,smcntrpmf,zicboz,zicbom,svpbmt,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000003666
+Boot HART MEDELEG           : 0x0000000000f4b509
+Enter riscv_boot
+INFO: Initializing frame metadata for physical memory 80040000..100000000
+INFO: Adding free frames to the allocator: 80060000..80200000
+INFO: Adding free frames to the allocator: 80edb000..a0200000
+INFO: Adding free frames to the allocator: a333e000..ffe00000
+INFO: Adding free frames to the allocator: ffe02000..100000000
+INFO: Initializing the kernel page table
+INFO: Creating new I/O memory allocator builder, ranges: [
+    0x0..0x80060000,
+    0x100000000..0xffffffffffffffff,
+]
+INFO: Booting 1 processors
+INFO: Booting all application processors...
+INFO: Bootstrapping hart is 0, booting all other harts
+INFO: Starting hart 1
+INFO: Detected ISA extensions: A | C | D | F | H | I | M | SSCOFPMF | SSTC | SVPBMT | ZBB | ZICBOM | ZIHINTPAUSE | ZICBOZ | ZBA | ZBS | ZICNTR | ZICSR | ZIFENCEI | ZIHPM | ZBC | ZKR | ZIHINTNTL | ZFA | ZCA | ZCD | ZAWRS | SVVPTC | ZICCRSE | SVADU | ZAAMO | ZALRSC | SMCNTRPMF
+INFO: Processor 1 started. Spinning for tasks.
+INFO: All application processors started. The BSP continues to run.
+OSTD initialized. Preparing components.
+WARN: framebuffer: Framebuffer not found
+INFO: pci: initializing the PCI bus with bus numbers `0..=255`
+[32m[     0.241][0m [34mINFO  [0m: [39m[0m[39mComponent initialize complete[0m
+[32m[     0.243][0m [34mINFO  [0m: [39m[0m[39mComponent initializing: ComponentInfo { name: "aster-uart", path: "/root/asterinas/kernel/comps/uart", priority: 1 }[0m
+[32m[     0.253][0m [34mINFO  [0m: [39muart: [0m[39mRegistered NS16550A as a console[0m
+[32m[     0.254][0m [34mINFO  [0m: [39m[0m[39mComponent initialize complete[0m
+[32m[     0.255][0m [34mINFO  [0m: [39m[0m[39mComponent initializing: ComponentInfo { name: "aster-virtio", path: "/root/asterinas/kernel/core/comps/virtio", priority: 2 }[0m
+[32m[     0.290][0m [34mINFO  [0m: [39m[0m[39mComponent initialize complete[0m
+[32m[     0.291][0m [34mINFO  [0m: [39m[0m[39mAll components initialization in Bootstrap stage completed[0m
+[32m[     0.296][0m [34mINFO  [0m: [39m[0m[39muse randomness generated by hardware[0m
+[32m[     0.548][0m [34mINFO  [0m: [39m[0m[39m[kernel] LSM module enabled: capability[0m
+[32m[     0.549][0m [34mINFO  [0m: [39m[0m[39m[kernel] LSM module enabled: yama[0m
+[32m[     0.551][0m [93mWARN  [0m: [39m[0m[39m[pmu] cpu=CpuId(0) unavailable: Unsupported[0m
+[32m[     0.553][0m [93mWARN  [0m: [39m[0m[39m[pmu] cpu=CpuId(1) unavailable: Unsupported[0m
+[32m[     0.561][0m [34mINFO  [0m: [39m[0m[39mIdle thread for CPU #0 started[0m
+Spawn the first kernel thread
+[32m[     0.578][0m [34mINFO  [0m: [39m[0m[39mIdle thread for CPU #1 started[0m
+[32m[     0.584][0m [34mINFO  [0m: [39m[0m[39mExists components that are not initialized[0m
+[32m[     0.585][0m [34mINFO  [0m: [39m[0m[39mComponents initializing in Kthread stage...[0m
+[32m[     0.586][0m [34mINFO  [0m: [39m[0m[39mAll components initialization in Kthread stage completed[0m
+[kernel] unpacking initramfs.cpio.gz to rootfs ...
+[kernel] initramfs is ready
+[32m[    28.551][0m [34mINFO  [0m: [39minput: [0m[39mregistered handler class evdev[0m
+[32m[    28.552][0m [34mINFO  [0m: [39m[0m[39mEvdev device support initialized[0m
+
+                                  [38;2;87;180;249m.[39m[38;2;89;185;249m.[39m[38;2;91;189;250m.[39m[38;2;93;193;250m.[39m[38;2;94;197;250m.[39m[38;2;96;201;250m.[39m
+                                [38;2;83;172;249m.[39m[38;2;85;176;249m-[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                               [38;2;82;168;249m.[39m[38;2;83;172;249m=[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                              [38;2;80;163;249m:[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m:[39m
+                            [38;2;76;155;248m.[39m[38;2;78;159;248m-[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                           [38;2;74;151;248m.[39m[38;2;76;155;248m=[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m=[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                          [38;2;73;147;248m:[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m-[39m[38;2;85;176;249m.[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                        [38;2;69;138;248m.[39m[38;2;71;142;248m=[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m+[39m[38;2;82;168;249m:[39m [38;2;85;176;249m.[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m.[39m
+                       [38;2;67;134;248m.[39m[38;2;69;138;248m+[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m=[39m[38;2;80;163;249m.[39m  [38;2;85;176;249m.[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m-[39m
+                     [38;2;63;125;247m.[39m[38;2;65;130;247m-[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m=[39m[38;2;78;159;248m.[39m   [38;2;85;176;249m:[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m-[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m:[39m[38;2;36;62;245m:[39m[38;2;38;66;245m-[39m[38;2;40;70;245m=[39m[38;2;42;75;245m=[39m[38;2;43;79;245m=[39m[38;2;45;83;246m=[39m[38;2;47;87;246m=[39m[38;2;49;92;246m=[39m[38;2;51;96;246m=[39m[38;2;53;100;246m=[39m[38;2;54;104;246m=[39m[38;2;56;108;247m=[39m[38;2;58;113;247m=[39m[38;2;60;117;247m=[39m[38;2;62;121;247m=[39m[38;2;63;125;247m+[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m+[39m[38;2;76;155;248m-[39m[38;2;78;159;248m-[39m[38;2;80;163;249m-[39m[38;2;82;168;249m-[39m[38;2;83;172;249m-[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m-[39m[38;2;98;206;250m:[39m[38;2;100;210;250m:[39m[38;2;102;214;251m:[39m[38;2;103;218;251m:[39m[38;2;105;223;251m:[39m[38;2;107;227;251m:[39m[38;2;109;231;251m:[39m[38;2;111;235;251m.[39m
+        [38;2;40;70;245m.[39m[38;2;42;75;245m.[39m[38;2;43;79;245m:[39m[38;2;45;83;246m-[39m[38;2;47;87;246m*[39m[38;2;49;92;246m#[39m[38;2;51;96;246m#[39m[38;2;53;100;246m#[39m[38;2;54;104;246m#[39m[38;2;56;108;247m#[39m[38;2;58;113;247m#[39m[38;2;60;117;247m#[39m[38;2;62;121;247m#[39m[38;2;63;125;247m#[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m=[39m[38;2;98;206;250m=[39m[38;2;100;210;250m=[39m[38;2;102;214;251m=[39m[38;2;103;218;251m=[39m[38;2;105;223;251m=[39m[38;2;107;227;251m:[39m[38;2;109;231;251m.[39m
+              [38;2;51;96;246m.[39m[38;2;53;100;246m:[39m[38;2;54;104;246m+[39m[38;2;56;108;247m*[39m[38;2;58;113;247m#[39m[38;2;60;117;247m#[39m[38;2;62;121;247m#[39m[38;2;63;125;247m#[39m[38;2;65;130;247m#[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m+[39m[38;2;76;155;248m+[39m[38;2;78;159;248m+[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m=[39m[38;2;96;201;250m=[39m[38;2;98;206;250m=[39m[38;2;100;210;250m=[39m[38;2;102;214;251m=[39m[38;2;103;218;251m-[39m[38;2;105;223;251m.[39m[38;2;107;227;251m.[39m
+                 [38;2;56;108;247m.[39m[38;2;58;113;247m.[39m[38;2;60;117;247m-[39m[38;2;62;121;247m+[39m[38;2;63;125;247m#[39m[38;2;65;130;247m*[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m=[39m[38;2;78;159;248m.[39m[38;2;80;163;249m.[39m  [38;2;85;176;249m-[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+                [38;2;54;104;246m-[39m[38;2;56;108;247m+[39m[38;2;58;113;247m=[39m[38;2;60;117;247m.[39m[38;2;62;121;247m.[39m[38;2;63;125;247m.[39m[38;2;65;130;247m:[39m[38;2;67;134;248m*[39m[38;2;69;138;248m*[39m[38;2;71;142;248m*[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m=[39m[38;2;82;168;249m.[39m[38;2;83;172;249m.[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+              [38;2;51;96;246m.[39m[38;2;53;100;246m+[39m[38;2;54;104;246m*[39m[38;2;56;108;247m+[39m[38;2;58;113;247m+[39m[38;2;60;117;247m+[39m[38;2;62;121;247m=[39m[38;2;63;125;247m.[39m [38;2;67;134;248m.[39m[38;2;69;138;248m.[39m[38;2;71;142;248m=[39m[38;2;73;147;248m*[39m[38;2;74;151;248m*[39m[38;2;76;155;248m*[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m-[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m+[39m[38;2;94;197;250m.[39m
+            [38;2;47;87;246m.[39m[38;2;49;92;246m:[39m[38;2;51;96;246m*[39m[38;2;53;100;246m*[39m[38;2;54;104;246m*[39m[38;2;56;108;247m+[39m[38;2;58;113;247m=[39m[38;2;60;117;247m.[39m[38;2;62;121;247m.[39m     [38;2;73;147;248m.[39m[38;2;74;151;248m-[39m[38;2;76;155;248m+[39m[38;2;78;159;248m*[39m[38;2;80;163;249m*[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m[38;2;94;197;250m.[39m
+           [38;2;45;83;246m.[39m[38;2;47;87;246m-[39m[38;2;49;92;246m*[39m[38;2;51;96;246m*[39m[38;2;53;100;246m*[39m[38;2;54;104;246m+[39m[38;2;56;108;247m:[39m          [38;2;76;155;248m.[39m[38;2;78;159;248m-[39m[38;2;80;163;249m+[39m[38;2;82;168;249m+[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m
+          [38;2;43;79;245m.[39m[38;2;45;83;246m*[39m[38;2;47;87;246m#[39m[38;2;49;92;246m*[39m[38;2;51;96;246m=[39m[38;2;53;100;246m.[39m              [38;2;80;163;249m.[39m[38;2;82;168;249m=[39m[38;2;83;172;249m+[39m[38;2;85;176;249m+[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m=[39m
+        [38;2;40;70;245m.[39m[38;2;42;75;245m-[39m[38;2;43;79;245m*[39m[38;2;45;83;246m#[39m[38;2;47;87;246m+[39m[38;2;49;92;246m.[39m[38;2;51;96;246m.[39m                [38;2;82;168;249m.[39m[38;2;83;172;249m:[39m[38;2;85;176;249m=[39m[38;2;87;180;249m+[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m-[39m
+       [38;2;38;66;245m.[39m[38;2;40;70;245m=[39m[38;2;42;75;245m#[39m[38;2;43;79;245m=[39m[38;2;45;83;246m.[39m                     [38;2;85;176;249m.[39m[38;2;87;180;249m=[39m[38;2;89;185;249m+[39m[38;2;91;189;250m+[39m[38;2;93;193;250m-[39m
+      [38;2;36;62;245m:[39m[38;2;38;66;245m*[39m[38;2;40;70;245m=[39m[38;2;42;75;245m.[39m                         [38;2;89;185;249m.[39m[38;2;91;189;250m.[39m[38;2;93;193;250m.[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m:[39m[38;2;36;62;245m-[39m[38;2;38;66;245m.[39m [38;2;42;75;245mP[39m[38;2;43;79;245mr[39m[38;2;45;83;246me[39m[38;2;47;87;246ms[39m[38;2;49;92;246me[39m[38;2;51;96;246mn[39m[38;2;53;100;246mt[39m[38;2;54;104;246me[39m[38;2;56;108;247md[39m [38;2;60;117;247mb[39m[38;2;62;121;247my[39m [38;2;65;130;247mt[39m[38;2;67;134;248mh[39m[38;2;69;138;248me[39m [38;2;73;147;248mA[39m[38;2;74;151;248ms[39m[38;2;76;155;248mt[39m[38;2;78;159;248me[39m[38;2;80;163;249mr[39m[38;2;82;168;249mi[39m[38;2;83;172;249mn[39m[38;2;85;176;249ma[39m[38;2;87;180;249ms[39m [38;2;91;189;250md[39m[38;2;93;193;250me[39m[38;2;94;197;250mv[39m[38;2;96;201;250me[39m[38;2;98;206;250ml[39m[38;2;100;210;250mo[39m[38;2;102;214;251mp[39m[38;2;103;218;251me[39m[38;2;105;223;251mr[39m[38;2;107;227;251ms[39m
+    [38;2;33;54;245m.[39m[38;2;34;58;245m.[39m [38;2;38;66;245mR[39m[38;2;40;70;245me[39m[38;2;42;75;245ml[39m[38;2;43;79;245me[39m[38;2;45;83;246ma[39m[38;2;47;87;246ms[39m[38;2;49;92;246me[39m[38;2;51;96;246md[39m [38;2;54;104;246mu[39m[38;2;56;108;247mn[39m[38;2;58;113;247md[39m[38;2;60;117;247me[39m[38;2;62;121;247mr[39m [38;2;65;130;247mM[39m[38;2;67;134;248mo[39m[38;2;69;138;248mz[39m[38;2;71;142;248mi[39m[38;2;73;147;248ml[39m[38;2;74;151;248ml[39m[38;2;76;155;248ma[39m [38;2;80;163;249mP[39m[38;2;82;168;249mu[39m[38;2;83;172;249mb[39m[38;2;85;176;249ml[39m[38;2;87;180;249mi[39m[38;2;89;185;249mc[39m [38;2;93;193;250mL[39m[38;2;94;197;250mi[39m[38;2;96;201;250mc[39m[38;2;98;206;250me[39m[38;2;100;210;250mn[39m[38;2;102;214;251ms[39m[38;2;103;218;251me[39m [38;2;107;227;251mv[39m[38;2;109;231;251m2[39m[38;2;111;235;251m.[39m[38;2;113;240;252m0[39m
+
+[kernel] running /init as the init process
+[32m[    28.675][0m [34mINFO  [0m: [39m[0m[39mExists components that are not initialized[0m
+[32m[    28.675][0m [34mINFO  [0m: [39m[0m[39mComponents initializing in Process stage...[0m
+[32m[    28.676][0m [34mINFO  [0m: [39m[0m[39mComponent initializing: ComponentInfo { name: "aster-simpledrm", path: "/root/asterinas/kernel/comps/simpledrm", priority: 4 }[0m
+[32m[    28.683][0m [93mWARN  [0m: [39msimpledrm: [0m[39mFailed to init: boot framebuffer is unavailable[0m
+[32m[    28.693][0m [34mINFO  [0m: [39m[0m[39mComponent initialize complete[0m
+[32m[    28.702][0m [34mINFO  [0m: [39m[0m[39mAll components initialization in Process stage completed[0m
+[32m[    28.815][0m [34mINFO  [0m: [39minput: [0m[39mregistered handler class vt_keyboard[0m
+[32m[    28.865][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=214][SYS_BRK][0m
+[32m[    28.895][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=48][SYS_FACCESSAT][0m
+[32m[    28.928][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=56][SYS_OPENAT][0m
+[32m[    28.954][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=63][SYS_READ][0m
+[32m[    28.971][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=80][SYS_NEWFSTAT][0m
+[32m[    28.985][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.005][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.027][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.046][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=57][SYS_CLOSE][0m
+[32m[    29.058][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=56][SYS_OPENAT][0m
+[32m[    29.073][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=63][SYS_READ][0m
+[32m[    29.086][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=80][SYS_NEWFSTAT][0m
+[32m[    29.098][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.112][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.127][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=57][SYS_CLOSE][0m
+[32m[    29.138][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=56][SYS_OPENAT][0m
+[32m[    29.152][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=63][SYS_READ][0m
+[32m[    29.165][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=80][SYS_NEWFSTAT][0m
+[32m[    29.178][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.191][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.204][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.219][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=57][SYS_CLOSE][0m
+[32m[    29.234][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=222][SYS_MMAP][0m
+[32m[    29.248][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    29.262][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    29.276][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    29.295][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=226][SYS_MPROTECT][0m
+[32m[    29.313][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=226][SYS_MPROTECT][0m
+[32m[    29.330][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=226][SYS_MPROTECT][0m
+[32m[    29.346][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=226][SYS_MPROTECT][0m
+[32m[    29.361][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=226][SYS_MPROTECT][0m
+[32m[    29.379][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=261][SYS_PRLIMIT64][0m
+[32m[    29.394][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=278][SYS_GETRANDOM][0m
+[32m[    29.414][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=174][SYS_GETUID][0m
+[32m[    29.431][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=214][SYS_BRK][0m
+[32m[    29.444][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=214][SYS_BRK][0m
+[32m[    29.459][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=172][SYS_GETPID][0m
+[32m[    29.475][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.491][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=173][SYS_GETPPID][0m
+[32m[    29.505][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=160][SYS_NEWUNAME][0m
+[32m[    29.518][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=17][SYS_GETCWD][0m
+[32m[    29.531][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=56][SYS_OPENAT][0m
+[32m[    29.544][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=25][SYS_FCNTL][0m
+[32m[    29.559][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=57][SYS_CLOSE][0m
+[32m[    29.572][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.585][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.600][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.614][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.627][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.640][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=63][SYS_READ][0m
+[32m[    29.654][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=79][SYS_NEWFSTATAT][0m
+[32m[    29.669][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    29.683][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=220][SYS_CLONE][0m
+[32m[    29.786][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    29.786][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    29.786][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    29.789][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    29.793][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=57][SYS_CLOSE][0m
+[32m[    29.795][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=134][SYS_RT_SIGACTION][0m
+[32m[    29.797][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=221][SYS_EXECVE][0m
+[32m[    29.886][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=214][SYS_BRK][0m
+[32m[    29.891][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=48][SYS_FACCESSAT][0m
+[32m[    29.893][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=56][SYS_OPENAT][0m
+[32m[    29.895][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=63][SYS_READ][0m
+[32m[    29.896][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=80][SYS_NEWFSTAT][0m
+[32m[    29.897][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.899][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.900][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.904][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=57][SYS_CLOSE][0m
+[32m[    29.905][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=56][SYS_OPENAT][0m
+[32m[    29.907][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=63][SYS_READ][0m
+[32m[    29.908][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=80][SYS_NEWFSTAT][0m
+[32m[    29.909][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.910][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.913][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=57][SYS_CLOSE][0m
+[32m[    29.914][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=56][SYS_OPENAT][0m
+[32m[    29.916][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=63][SYS_READ][0m
+[32m[    29.917][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=80][SYS_NEWFSTAT][0m
+[32m[    29.919][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.920][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.922][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.925][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=57][SYS_CLOSE][0m
+[32m[    29.927][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=222][SYS_MMAP][0m
+[32m[    29.929][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    29.930][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    29.931][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    29.939][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=226][SYS_MPROTECT][0m
+[32m[    29.943][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=226][SYS_MPROTECT][0m
+[32m[    29.946][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=226][SYS_MPROTECT][0m
+[32m[    29.951][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=226][SYS_MPROTECT][0m
+[32m[    29.953][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=226][SYS_MPROTECT][0m
+[32m[    29.958][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=261][SYS_PRLIMIT64][0m
+[32m[    29.960][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=278][SYS_GETRANDOM][0m
+[32m[    29.965][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=174][SYS_GETUID][0m
+[32m[    29.970][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=214][SYS_BRK][0m
+[32m[    29.971][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=214][SYS_BRK][0m
+[32m[    29.973][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=174][SYS_GETUID][0m
+[32m[    29.975][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=175][SYS_GETEUID][0m
+[32m[    29.984][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=79][SYS_NEWFSTATAT][0m
+[32m[    29.987][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=40][SYS_MOUNT][0m
+[32m[    30.005][0m [34mINFO  [0m: [39m[0m[39m[pid=2][tid=2][id=94][SYS_EXIT_GROUP][0m
+[32m[    30.058][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=139][SYS_RT_SIGRETURN][0m
+[32m[    30.075][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    30.097][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    30.110][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=220][SYS_CLONE][0m
+[32m[    30.177][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    30.191][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    30.210][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    30.225][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    30.241][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=57][SYS_CLOSE][0m
+[32m[    30.255][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=134][SYS_RT_SIGACTION][0m
+[32m[    30.270][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=221][SYS_EXECVE][0m
+[32m[    30.323][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=214][SYS_BRK][0m
+[32m[    30.340][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=48][SYS_FACCESSAT][0m
+[32m[    30.357][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=56][SYS_OPENAT][0m
+[32m[    30.372][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=63][SYS_READ][0m
+[32m[    30.385][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=80][SYS_NEWFSTAT][0m
+[32m[    30.398][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.411][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.426][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.441][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=57][SYS_CLOSE][0m
+[32m[    30.456][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=56][SYS_OPENAT][0m
+[32m[    30.470][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=63][SYS_READ][0m
+[32m[    30.482][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=80][SYS_NEWFSTAT][0m
+[32m[    30.496][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.508][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.524][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=57][SYS_CLOSE][0m
+[32m[    30.537][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=56][SYS_OPENAT][0m
+[32m[    30.552][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=63][SYS_READ][0m
+[32m[    30.565][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=80][SYS_NEWFSTAT][0m
+[32m[    30.580][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.594][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.609][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.625][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=57][SYS_CLOSE][0m
+[32m[    30.639][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=222][SYS_MMAP][0m
+[32m[    30.653][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    30.666][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    30.678][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    30.696][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=226][SYS_MPROTECT][0m
+[32m[    30.713][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=226][SYS_MPROTECT][0m
+[32m[    30.730][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=226][SYS_MPROTECT][0m
+[32m[    30.749][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=226][SYS_MPROTECT][0m
+[32m[    30.765][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=226][SYS_MPROTECT][0m
+[32m[    30.783][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=261][SYS_PRLIMIT64][0m
+[32m[    30.798][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=278][SYS_GETRANDOM][0m
+[32m[    30.814][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=174][SYS_GETUID][0m
+[32m[    30.828][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=214][SYS_BRK][0m
+[32m[    30.842][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=214][SYS_BRK][0m
+[32m[    30.857][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=174][SYS_GETUID][0m
+[32m[    30.873][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=175][SYS_GETEUID][0m
+[32m[    30.890][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=79][SYS_NEWFSTATAT][0m
+[32m[    30.902][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=40][SYS_MOUNT][0m
+[32m[    30.922][0m [34mINFO  [0m: [39m[0m[39m[pid=3][tid=3][id=94][SYS_EXIT_GROUP][0m
+[32m[    30.960][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=139][SYS_RT_SIGRETURN][0m
+[32m[    30.976][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    30.991][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.005][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=220][SYS_CLONE][0m
+[32m[    31.069][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    31.070][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.072][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.072][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    31.079][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=57][SYS_CLOSE][0m
+[32m[    31.081][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.084][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=221][SYS_EXECVE][0m
+[32m[    31.126][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=214][SYS_BRK][0m
+[32m[    31.131][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=48][SYS_FACCESSAT][0m
+[32m[    31.133][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=56][SYS_OPENAT][0m
+[32m[    31.135][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=63][SYS_READ][0m
+[32m[    31.136][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=80][SYS_NEWFSTAT][0m
+[32m[    31.137][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.139][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.140][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.144][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=57][SYS_CLOSE][0m
+[32m[    31.145][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=56][SYS_OPENAT][0m
+[32m[    31.147][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=63][SYS_READ][0m
+[32m[    31.149][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=80][SYS_NEWFSTAT][0m
+[32m[    31.150][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.152][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.155][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=57][SYS_CLOSE][0m
+[32m[    31.156][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=56][SYS_OPENAT][0m
+[32m[    31.158][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=63][SYS_READ][0m
+[32m[    31.159][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=80][SYS_NEWFSTAT][0m
+[32m[    31.161][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.163][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.165][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.168][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=57][SYS_CLOSE][0m
+[32m[    31.171][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=222][SYS_MMAP][0m
+[32m[    31.173][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    31.174][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    31.175][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    31.182][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=226][SYS_MPROTECT][0m
+[32m[    31.185][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=226][SYS_MPROTECT][0m
+[32m[    31.188][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=226][SYS_MPROTECT][0m
+[32m[    31.193][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=226][SYS_MPROTECT][0m
+[32m[    31.196][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=226][SYS_MPROTECT][0m
+[32m[    31.201][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=261][SYS_PRLIMIT64][0m
+[32m[    31.204][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=278][SYS_GETRANDOM][0m
+[32m[    31.209][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=174][SYS_GETUID][0m
+[32m[    31.213][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=214][SYS_BRK][0m
+[32m[    31.214][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=214][SYS_BRK][0m
+[32m[    31.216][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=174][SYS_GETUID][0m
+[32m[    31.218][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=175][SYS_GETEUID][0m
+[32m[    31.223][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=79][SYS_NEWFSTATAT][0m
+[32m[    31.225][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=40][SYS_MOUNT][0m
+[32m[    31.231][0m [34mINFO  [0m: [39m[0m[39m[pid=4][tid=4][id=94][SYS_EXIT_GROUP][0m
+[32m[    31.265][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=139][SYS_RT_SIGRETURN][0m
+[32m[    31.281][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    31.294][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=79][SYS_NEWFSTATAT][0m
+[32m[    31.310][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.324][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=220][SYS_CLONE][0m
+[32m[    31.386][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.387][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    31.387][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    31.392][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.396][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=57][SYS_CLOSE][0m
+[32m[    31.398][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.400][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=221][SYS_EXECVE][0m
+[32m[    31.443][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=214][SYS_BRK][0m
+[32m[    31.447][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=48][SYS_FACCESSAT][0m
+[32m[    31.450][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=56][SYS_OPENAT][0m
+[32m[    31.452][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=63][SYS_READ][0m
+[32m[    31.453][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=80][SYS_NEWFSTAT][0m
+[32m[    31.454][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.456][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.458][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.462][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=57][SYS_CLOSE][0m
+[32m[    31.463][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=56][SYS_OPENAT][0m
+[32m[    31.465][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=63][SYS_READ][0m
+[32m[    31.466][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=80][SYS_NEWFSTAT][0m
+[32m[    31.468][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.469][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.473][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=57][SYS_CLOSE][0m
+[32m[    31.474][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=56][SYS_OPENAT][0m
+[32m[    31.476][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=63][SYS_READ][0m
+[32m[    31.477][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=80][SYS_NEWFSTAT][0m
+[32m[    31.479][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.480][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.483][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.487][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=57][SYS_CLOSE][0m
+[32m[    31.489][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=222][SYS_MMAP][0m
+[32m[    31.491][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    31.492][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    31.493][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    31.501][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=226][SYS_MPROTECT][0m
+[32m[    31.504][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=226][SYS_MPROTECT][0m
+[32m[    31.509][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=226][SYS_MPROTECT][0m
+[32m[    31.513][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=226][SYS_MPROTECT][0m
+[32m[    31.515][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=226][SYS_MPROTECT][0m
+[32m[    31.521][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=261][SYS_PRLIMIT64][0m
+[32m[    31.524][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=278][SYS_GETRANDOM][0m
+[32m[    31.529][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=174][SYS_GETUID][0m
+[32m[    31.533][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=214][SYS_BRK][0m
+[32m[    31.534][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=214][SYS_BRK][0m
+[32m[    31.537][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=172][SYS_GETPID][0m
+[32m[    31.540][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.544][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=173][SYS_GETPPID][0m
+[32m[    31.545][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=160][SYS_NEWUNAME][0m
+[32m[    31.546][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    31.547][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    31.548][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=56][SYS_OPENAT][0m
+[32m[    31.550][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=25][SYS_FCNTL][0m
+[32m[    31.551][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=57][SYS_CLOSE][0m
+[32m[    31.552][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.553][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.554][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.555][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.556][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.558][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=63][SYS_READ][0m
+[32m[    31.561][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+PMU_VERIFY_BOOT_BEGIN
+[32m[    31.564][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    31.567][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.569][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=220][SYS_CLONE][0m
+[32m[    31.628][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    31.629][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.629][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    31.632][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    31.632][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=57][SYS_CLOSE][0m
+[32m[    31.647][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=134][SYS_RT_SIGACTION][0m
+[32m[    31.662][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=221][SYS_EXECVE][0m
+[32m[    31.715][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=214][SYS_BRK][0m
+[32m[    31.730][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=48][SYS_FACCESSAT][0m
+[32m[    31.744][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=56][SYS_OPENAT][0m
+[32m[    31.758][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=63][SYS_READ][0m
+[32m[    31.772][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=80][SYS_NEWFSTAT][0m
+[32m[    31.786][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.799][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.812][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.828][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=57][SYS_CLOSE][0m
+[32m[    31.842][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=56][SYS_OPENAT][0m
+[32m[    31.855][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=63][SYS_READ][0m
+[32m[    31.868][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=80][SYS_NEWFSTAT][0m
+[32m[    31.881][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.893][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.909][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=57][SYS_CLOSE][0m
+[32m[    31.923][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=56][SYS_OPENAT][0m
+[32m[    31.937][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=63][SYS_READ][0m
+[32m[    31.950][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=80][SYS_NEWFSTAT][0m
+[32m[    31.963][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.977][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    31.992][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    32.008][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=57][SYS_CLOSE][0m
+[32m[    32.022][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=222][SYS_MMAP][0m
+[32m[    32.034][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    32.048][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    32.061][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    32.079][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=226][SYS_MPROTECT][0m
+[32m[    32.095][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=226][SYS_MPROTECT][0m
+[32m[    32.111][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=226][SYS_MPROTECT][0m
+[32m[    32.128][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=226][SYS_MPROTECT][0m
+[32m[    32.143][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=226][SYS_MPROTECT][0m
+[32m[    32.160][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=261][SYS_PRLIMIT64][0m
+[32m[    32.176][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=278][SYS_GETRANDOM][0m
+[32m[    32.193][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=174][SYS_GETUID][0m
+[32m[    32.211][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=160][SYS_NEWUNAME][0m
+[32m[    32.228][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=80][SYS_NEWFSTAT][0m
+[32m[    32.244][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=29][SYS_IOCTL][0m
+[32m[    32.259][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=214][SYS_BRK][0m
+[32m[    32.273][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=214][SYS_BRK][0m
+[32m[    32.288][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=64][SYS_WRITE][0m
+Linux (none) 5.13.0 #1 SMP Thu Jan  1 00:00:00 UTC 1970 riscv64 GNU/Linux
+[32m[    32.303][0m [34mINFO  [0m: [39m[0m[39m[pid=6][tid=6][id=94][SYS_EXIT_GROUP][0m
+[32m[    32.336][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=139][SYS_RT_SIGRETURN][0m
+[32m[    32.337][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    32.341][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=49][SYS_CHDIR][0m
+[32m[    32.354][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.355][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=220][SYS_CLONE][0m
+[32m[    32.414][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.418][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    32.421][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    32.426][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.430][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=57][SYS_CLOSE][0m
+[32m[    32.432][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=134][SYS_RT_SIGACTION][0m
+[32m[    32.434][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=221][SYS_EXECVE][0m
+[32m[    32.478][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=214][SYS_BRK][0m
+[32m[    32.481][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.484][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=48][SYS_FACCESSAT][0m
+[32m[    32.486][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=56][SYS_OPENAT][0m
+[32m[    32.488][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=63][SYS_READ][0m
+[32m[    32.489][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=80][SYS_NEWFSTAT][0m
+[32m[    32.491][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.492][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.496][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=57][SYS_CLOSE][0m
+[32m[    32.497][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=56][SYS_OPENAT][0m
+[32m[    32.499][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=63][SYS_READ][0m
+[32m[    32.500][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=80][SYS_NEWFSTAT][0m
+[32m[    32.502][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.503][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.506][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.509][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=57][SYS_CLOSE][0m
+[32m[    32.511][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=222][SYS_MMAP][0m
+[32m[    32.513][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    32.514][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    32.515][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    32.523][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=226][SYS_MPROTECT][0m
+[32m[    32.526][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=226][SYS_MPROTECT][0m
+[32m[    32.528][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=226][SYS_MPROTECT][0m
+[32m[    32.531][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=226][SYS_MPROTECT][0m
+[32m[    32.536][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=261][SYS_PRLIMIT64][0m
+[32m[    32.539][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=278][SYS_GETRANDOM][0m
+[32m[    32.544][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=80][SYS_NEWFSTAT][0m
+[32m[    32.545][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=29][SYS_IOCTL][0m
+[32m[    32.546][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=214][SYS_BRK][0m
+[32m[    32.547][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=214][SYS_BRK][0m
+[32m[    32.550][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=64][SYS_WRITE][0m
+PASS: C ABI size, offsets, bitfield flags and ioctl encodings
+[32m[    32.556][0m [34mINFO  [0m: [39m[0m[39m[pid=7][tid=7][id=94][SYS_EXIT_GROUP][0m
+[32m[    32.589][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=139][SYS_RT_SIGRETURN][0m
+[32m[    32.590][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    32.596][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.597][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=220][SYS_CLONE][0m
+[32m[    32.657][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    32.658][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.658][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    32.661][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    32.661][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=57][SYS_CLOSE][0m
+[32m[    32.673][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=134][SYS_RT_SIGACTION][0m
+[32m[    32.688][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=221][SYS_EXECVE][0m
+[32m[    32.748][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=214][SYS_BRK][0m
+[32m[    32.764][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.779][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=48][SYS_FACCESSAT][0m
+[32m[    32.793][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=56][SYS_OPENAT][0m
+[32m[    32.808][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=63][SYS_READ][0m
+[32m[    32.821][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=80][SYS_NEWFSTAT][0m
+[32m[    32.834][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.848][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.865][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=57][SYS_CLOSE][0m
+[32m[    32.879][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=56][SYS_OPENAT][0m
+[32m[    32.893][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=63][SYS_READ][0m
+[32m[    32.906][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=80][SYS_NEWFSTAT][0m
+[32m[    32.920][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.933][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.948][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.963][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=57][SYS_CLOSE][0m
+[32m[    32.977][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=222][SYS_MMAP][0m
+[32m[    32.992][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    33.006][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    33.019][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    33.036][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=226][SYS_MPROTECT][0m
+[32m[    33.052][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=226][SYS_MPROTECT][0m
+[32m[    33.066][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=226][SYS_MPROTECT][0m
+[32m[    33.082][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=226][SYS_MPROTECT][0m
+[32m[    33.101][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=261][SYS_PRLIMIT64][0m
+[32m[    33.116][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=278][SYS_GETRANDOM][0m
+[32m[    33.139][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=80][SYS_NEWFSTAT][0m
+[32m[    33.154][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=29][SYS_IOCTL][0m
+[32m[    33.168][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=214][SYS_BRK][0m
+[32m[    33.183][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=214][SYS_BRK][0m
+[32m[    33.197][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=64][SYS_WRITE][0m
+checksum=11932747686031344341
+[32m[    33.212][0m [34mINFO  [0m: [39m[0m[39m[pid=8][tid=8][id=94][SYS_EXIT_GROUP][0m
+[32m[    33.244][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=139][SYS_RT_SIGRETURN][0m
+[32m[    33.245][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    33.249][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    33.250][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=220][SYS_CLONE][0m
+[32m[    33.307][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    33.312][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    33.312][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    33.316][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    33.316][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=57][SYS_CLOSE][0m
+[32m[    33.329][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=134][SYS_RT_SIGACTION][0m
+[32m[    33.343][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=221][SYS_EXECVE][0m
+[32m[    33.394][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=214][SYS_BRK][0m
+[32m[    33.408][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.423][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=48][SYS_FACCESSAT][0m
+[32m[    33.436][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=56][SYS_OPENAT][0m
+[32m[    33.451][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=63][SYS_READ][0m
+[32m[    33.466][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=80][SYS_NEWFSTAT][0m
+[32m[    33.480][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.496][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.511][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=57][SYS_CLOSE][0m
+[32m[    33.524][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=56][SYS_OPENAT][0m
+[32m[    33.538][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=63][SYS_READ][0m
+[32m[    33.550][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=80][SYS_NEWFSTAT][0m
+[32m[    33.564][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.578][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.592][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.609][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=57][SYS_CLOSE][0m
+[32m[    33.623][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=222][SYS_MMAP][0m
+[32m[    33.635][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    33.648][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    33.661][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    33.676][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=226][SYS_MPROTECT][0m
+[32m[    33.692][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=226][SYS_MPROTECT][0m
+[32m[    33.707][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=226][SYS_MPROTECT][0m
+[32m[    33.723][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=226][SYS_MPROTECT][0m
+[32m[    33.741][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=261][SYS_PRLIMIT64][0m
+[32m[    33.756][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=278][SYS_GETRANDOM][0m
+[32m[    33.771][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=80][SYS_NEWFSTAT][0m
+[32m[    33.784][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=29][SYS_IOCTL][0m
+[32m[    33.797][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=214][SYS_BRK][0m
+[32m[    33.809][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=214][SYS_BRK][0m
+[32m[    33.821][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=64][SYS_WRITE][0m
+RV64: check the per-hart [pmu] boot messages and the trusted SBI platform contract.
+[32m[    33.840][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=241][SYS_PERF_EVENT_OPEN][0m
+[32m[    33.858][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=64][SYS_WRITE][0m
+perf_event_open(cycles:u): Operation not supported (errno=95)
+[32m[    33.874][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=64][SYS_WRITE][0m
+SKIP: check pmu feature, CAP_PERFMON/CAP_SYS_ADMIN and guest PMU exposure.
+[32m[    33.891][0m [34mINFO  [0m: [39m[0m[39m[pid=9][tid=9][id=94][SYS_EXIT_GROUP][0m
+[32m[    33.922][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=139][SYS_RT_SIGRETURN][0m
+[32m[    33.923][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    33.928][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    33.930][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    33.933][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+/test/pmu_verify.sh: [32m[    33.935][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+line 12: [32m[    33.937][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+perf: not found[32m[    33.940][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+
+[32m[    33.942][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    33.944][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    33.945][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=220][SYS_CLONE][0m
+[32m[    34.009][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.012][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    34.016][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    34.021][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.025][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=57][SYS_CLOSE][0m
+[32m[    34.027][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=134][SYS_RT_SIGACTION][0m
+[32m[    34.029][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=221][SYS_EXECVE][0m
+[32m[    34.076][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=214][SYS_BRK][0m
+[32m[    34.080][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=48][SYS_FACCESSAT][0m
+[32m[    34.083][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=56][SYS_OPENAT][0m
+[32m[    34.085][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=63][SYS_READ][0m
+[32m[    34.086][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=80][SYS_NEWFSTAT][0m
+[32m[    34.087][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.088][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.090][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.094][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=57][SYS_CLOSE][0m
+[32m[    34.095][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=56][SYS_OPENAT][0m
+[32m[    34.097][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=63][SYS_READ][0m
+[32m[    34.098][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=80][SYS_NEWFSTAT][0m
+[32m[    34.099][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.100][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.104][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=57][SYS_CLOSE][0m
+[32m[    34.105][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=56][SYS_OPENAT][0m
+[32m[    34.107][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=63][SYS_READ][0m
+[32m[    34.109][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=80][SYS_NEWFSTAT][0m
+[32m[    34.110][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.111][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.114][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.117][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=57][SYS_CLOSE][0m
+[32m[    34.120][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=222][SYS_MMAP][0m
+[32m[    34.122][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    34.123][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    34.124][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    34.132][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=226][SYS_MPROTECT][0m
+[32m[    34.135][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=226][SYS_MPROTECT][0m
+[32m[    34.138][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=226][SYS_MPROTECT][0m
+[32m[    34.143][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=226][SYS_MPROTECT][0m
+[32m[    34.145][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=226][SYS_MPROTECT][0m
+[32m[    34.150][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=261][SYS_PRLIMIT64][0m
+[32m[    34.152][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=278][SYS_GETRANDOM][0m
+[32m[    34.157][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=174][SYS_GETUID][0m
+[32m[    34.165][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=220][SYS_CLONE][0m
+[32m[    34.173][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=173][SYS_GETPPID][0m
+[32m[    34.187][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=56][SYS_OPENAT][0m
+[32m[    34.205][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.219][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=220][SYS_CLONE][0m
+[32m[    34.284][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    34.284][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.289][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.289][0m [34mINFO  [0m: [39m[0m[39m[pid=11][tid=11][id=94][SYS_EXIT_GROUP][0m
+[32m[    34.292][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=157][SYS_SETSID][0m
+[32m[    34.297][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=260][SYS_WAIT4][0m
+[32m[    34.301][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=221][SYS_EXECVE][0m
+[32m[    34.303][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=24][SYS_DUP3][0m
+[32m[    34.307][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=221][SYS_EXECVE][0m
+[32m[    34.309][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=24][SYS_DUP3][0m
+[32m[    34.313][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=214][SYS_BRK][0m
+[32m[    34.314][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=24][SYS_DUP3][0m
+[32m[    34.317][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=214][SYS_BRK][0m
+[32m[    34.319][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=57][SYS_CLOSE][0m
+[32m[    34.326][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=64][SYS_WRITE][0m
+timeout: can't execute 'perf': No such file or directory
+[32m[    34.329][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=115][SYS_CLOCK_NANOSLEEP][0m
+[32m[    34.338][0m [34mINFO  [0m: [39m[0m[39m[pid=10][tid=10][id=94][SYS_EXIT_GROUP][0m
+[32m[    34.362][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=139][SYS_RT_SIGRETURN][0m
+[32m[    34.363][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=260][SYS_WAIT4][0m
+[32m[    34.370][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+PMU_VERIFY_RESULT abi=0 workload=0 probe=77 perf_version=127 perf_stat=127 suite=77
+[32m[    34.372][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+PMU_REVIEW_PERF_LOGS_BEGIN
+[32m[    34.375][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=56][SYS_OPENAT][0m
+[32m[    34.377][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=79][SYS_NEWFSTATAT][0m
+[32m[    34.379][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+PMU_REVIEW_PERF_LOGS_END
+[32m[    34.381][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=64][SYS_WRITE][0m
+PMU_VERIFY_BOOT_END
+[32m[    34.384][0m [34mINFO  [0m: [39m[0m[39m[pid=5][tid=5][id=94][SYS_EXIT_GROUP][0m
+[32m[    34.411][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=139][SYS_RT_SIGRETURN][0m
+[32m[    34.425][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    34.442][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=64][SYS_WRITE][0m
+PMU_VERIFY_INIT_EXIT=1
+[32m[    34.454][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=79][SYS_NEWFSTATAT][0m
+[32m[    34.469][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.481][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=220][SYS_CLONE][0m
+[32m[    34.547][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    34.551][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.551][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=135][SYS_RT_SIGPROCMASK][0m
+[32m[    34.551][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    34.554][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=129][SYS_KILL][0m
+[32m[    34.560][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=57][SYS_CLOSE][0m
+[32m[    34.563][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=134][SYS_RT_SIGACTION][0m
+[32m[    34.568][0m [34mINFO  [0m: [39m[0m[39m[pid=12][tid=12][id=94][SYS_EXIT_GROUP][0m
+[32m[    34.587][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=221][SYS_EXECVE][0m
+[32m[    34.592][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=139][SYS_RT_SIGRETURN][0m
+[32m[    34.601][0m [34mINFO  [0m: [39m[0m[39m[pid=1][tid=1][id=260][SYS_WAIT4][0m
+[32m[    34.624][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=214][SYS_BRK][0m
+[32m[    34.628][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=48][SYS_FACCESSAT][0m
+[32m[    34.631][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=56][SYS_OPENAT][0m
+[32m[    34.633][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=63][SYS_READ][0m
+[32m[    34.634][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=80][SYS_NEWFSTAT][0m
+[32m[    34.635][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.637][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.638][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.642][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=57][SYS_CLOSE][0m
+[32m[    34.643][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=56][SYS_OPENAT][0m
+[32m[    34.645][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=63][SYS_READ][0m
+[32m[    34.646][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=80][SYS_NEWFSTAT][0m
+[32m[    34.647][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.648][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.652][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=57][SYS_CLOSE][0m
+[32m[    34.653][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=56][SYS_OPENAT][0m
+[32m[    34.655][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=63][SYS_READ][0m
+[32m[    34.656][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=80][SYS_NEWFSTAT][0m
+[32m[    34.657][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.658][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.661][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.664][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=57][SYS_CLOSE][0m
+[32m[    34.666][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=222][SYS_MMAP][0m
+[32m[    34.668][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=96][SYS_SET_TID_ADDRESS][0m
+[32m[    34.669][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=99][SYS_SET_ROBUST_LIST][0m
+[32m[    34.670][0m [93mWARN  [0m: [39m[0m[39mUnimplemented syscall number: 293[0m
+[32m[    34.678][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=226][SYS_MPROTECT][0m
+[32m[    34.681][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=226][SYS_MPROTECT][0m
+[32m[    34.684][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=226][SYS_MPROTECT][0m
+[32m[    34.690][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=226][SYS_MPROTECT][0m
+[32m[    34.692][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=226][SYS_MPROTECT][0m
+[32m[    34.698][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=261][SYS_PRLIMIT64][0m
+[32m[    34.700][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=278][SYS_GETRANDOM][0m
+[32m[    34.705][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=174][SYS_GETUID][0m
+[32m[    34.711][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=115][SYS_CLOCK_NANOSLEEP][0m
+[32m[    34.713][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=160][SYS_NEWUNAME][0m
+[32m[    34.715][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=48][SYS_FACCESSAT][0m
+[32m[    34.716][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=56][SYS_OPENAT][0m
+[32m[    34.718][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=81][SYS_SYNC][0m
+[32m[    34.731][0m [34mINFO  [0m: [39m[0m[39m[pid=13][tid=13][id=142][SYS_REBOOT][0m

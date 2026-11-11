@@ -10,6 +10,8 @@ pub(crate) mod attributes;
 mod context;
 mod file;
 mod observation;
+#[cfg(ktest)]
+mod tests;
 
 pub(crate) use context::{EventSpec, PerfContext};
 pub(crate) use file::PerfEventFile;

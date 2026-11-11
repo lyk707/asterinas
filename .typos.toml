@@ -38,6 +38,8 @@ check-file = false
 # Files listed below are ignored to check.
 [files]
 extend-exclude = [
+    # Preserve verbatim output from third-party tools in validation evidence.
+    "docs/pmu/evidence/**/*.log",
     "test/initramfs/src/conformance/gvisor/blocklists/pty_test",
     "test/initramfs/build/initramfs/opt/gvisor/blocklists/pty_test",
     "test/initramfs/src/conformance/gvisor/blocklists/sync_test",

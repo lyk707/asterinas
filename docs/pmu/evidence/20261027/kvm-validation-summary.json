@@ -1,0 +1,70 @@
+{
+  "CheckedAt": "2026-10-27T20:10:37.6947283+08:00",
+  "HardwareCountingVerified": true,
+  "FullAcceptanceComplete": false,
+  "VerificationIsoSha256": "b3bc966cf4c5a42c103152c9cbb806c8cbc960f14988adfe1cd0182d50929ea1",
+  "Runs": [
+    {
+      "Run": "kvm-after-reboot",
+      "KvmEnabled": true,
+      "Qemu": {
+        "qemu": {
+          "micro": 0,
+          "minor": 2,
+          "major": 6
+        },
+        "package": "Debian 1:6.2+dfsg-2ubuntu6.31"
+      },
+      "CpuProperties": {
+        "perfctr-core": true,
+        "perfctr_core": true,
+        "family": 25,
+        "vendor": "AuthenticAMD",
+        "model": 97,
+        "stepping": 2,
+        "pmu": true,
+        "perfctr-nb": false,
+        "perfctr_nb": false,
+        "vmx-rdpmc-exit": false
+      },
+      "ProbeCycles": 4008263,
+      "PerfRounds": 10,
+      "Failed": 0,
+      "Skipped": 1,
+      "Result": "PMU_VERIFY_RESULT abi=0 workload=0 probe=0 perf_version=0 perf_stat=0 suite=77",
+      "Migration": "SKIP migration: scheduler stayed on CPU 1 (requested 0); migration is unverified",
+      "GuestLog": "kvm-after-reboot/guest.log"
+    },
+    {
+      "Run": "kvm-docker-after-reboot",
+      "KvmEnabled": true,
+      "Qemu": {
+        "qemu": {
+          "micro": 1,
+          "minor": 2,
+          "major": 10
+        },
+        "package": ""
+      },
+      "CpuProperties": {
+        "perfctr-core": true,
+        "perfctr_core": true,
+        "family": 25,
+        "vendor": "AuthenticAMD",
+        "model": 97,
+        "stepping": 2,
+        "pmu": true,
+        "perfctr-nb": false,
+        "perfctr_nb": false,
+        "vmx-rdpmc-exit": false
+      },
+      "ProbeCycles": 4006739,
+      "PerfRounds": 10,
+      "Failed": 0,
+      "Skipped": 1,
+      "Result": "PMU_VERIFY_RESULT abi=0 workload=0 probe=0 perf_version=0 perf_stat=0 suite=77",
+      "Migration": "SKIP migration: scheduler stayed on CPU 0 (requested 1); migration is unverified",
+      "GuestLog": "kvm-docker-after-reboot/guest.log"
+    }
+  ]
+}
