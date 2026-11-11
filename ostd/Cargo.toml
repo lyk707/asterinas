@@ -76,6 +76,10 @@ cvm_guest = ["dep:tdx-guest"]
 coverage = ["minicov"]
 pvh_boot = []
 riscv_sv39_mode = []
+# Hardware PMU counting.
+pmu = []
+# Compatibility alias only; runtime firmware/ISA validation cannot be bypassed.
+pmu_sbi_trusted = ["pmu"]
 
 [lints]
 workspace = true

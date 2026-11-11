@@ -9,15 +9,16 @@
 //! interrupt-context execution and return a [`PendingIpis`] handle that can be
 //! waited on when the caller needs completion.
 
-use alloc::{boxed::Box, collections::VecDeque};
+use alloc::{boxed::Box, collections::VecDeque, sync::Arc};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use spin::Once;
 
 use crate::{
     arch::{irq::HwCpuId, trap::TrapFrame},
-    cpu::{CpuSet, PinCurrentCpu},
-    cpu_local, irq,
+    cpu::{CpuId, CpuSet, PinCurrentCpu},
+    cpu_local,
+    irq::{self, DisabledLocalIrqGuard},
     sync::SpinLock,
     util::id_set::Id,
 };
@@ -45,6 +46,41 @@ pub fn inter_processor_call(targets: &CpuSet, call_fn: fn()) -> PendingIpis {
     ipi_sender.inter_processor_call(targets, call_fn)
 }
 
+/// Runs a short, non-blocking function on `cpu` with interrupts disabled and
+/// returns its result. The function must not send IPIs or wait for another CPU.
+///
+/// # Panics
+///
+/// Panics if local interrupts are disabled or a remote IPI cannot be sent.
+pub fn call_on_cpu<R: Send + 'static>(
+    cpu: CpuId,
+    call_fn: impl FnOnce() -> R + Send + 'static,
+) -> R {
+    assert!(crate::arch::irq::is_local_enabled());
+    let irq_guard = irq::disable_local();
+    if irq_guard.current_cpu() == cpu {
+        return call_fn();
+    }
+
+    let result = Arc::new(SpinLock::<Option<R>>::new(None));
+    let remote_result = result.clone();
+    let sender = IPI_SENDER.get().unwrap();
+    sender.enqueue(
+        cpu,
+        IpiCall::Closure(Box::new(move || {
+            let value = call_fn();
+            *remote_result.lock() = Some(value);
+        })),
+    );
+    sender.send(cpu, &irq_guard);
+    drop(irq_guard);
+
+    let mut pending = PendingIpis::new_empty();
+    pending.add(cpu);
+    pending.wait();
+    result.lock().take().unwrap()
+}
+
 /// Pending remote inter-processor calls.
 pub struct PendingIpis {
     cpus: CpuSet,
@@ -57,7 +93,7 @@ impl PendingIpis {
         }
     }
 
-    fn add(&mut self, cpu_id: crate::cpu::CpuId) {
+    fn add(&mut self, cpu_id: CpuId) {
         self.cpus.add(cpu_id);
     }
 
@@ -121,21 +157,14 @@ impl IpiSender {
                 call_on_self = true;
                 continue;
             }
-            let mut call_queue = CALL_QUEUES.get_on_cpu(cpu_id).lock();
-            call_queue.push_back(call_fn);
-            // Set the pending flag before dropping the lock to avoid races.
-            HAS_PENDING_IPIS
-                .get_on_cpu(cpu_id)
-                .store(true, Ordering::Release);
+            self.enqueue(cpu_id, IpiCall::Function(call_fn));
             pending_ipis.add(cpu_id);
         }
         for cpu_id in targets.iter() {
             if cpu_id == this_cpu_id {
                 continue;
             }
-            let hw_cpu_id = self.hw_cpu_ids[cpu_id.as_usize()];
-            crate::arch::irq::send_ipi(hw_cpu_id, &irq_guard as _)
-                .expect("failed to send inter-processor interrupt");
+            self.send(cpu_id, &irq_guard);
         }
         if call_on_self {
             // Execute the function synchronously.
@@ -143,10 +172,30 @@ impl IpiSender {
         }
         pending_ipis
     }
+
+    fn enqueue(&self, cpu: CpuId, call: IpiCall) {
+        let mut queue = CALL_QUEUES.get_on_cpu(cpu).lock();
+        queue.push_back(call);
+        // Set the flag while holding the queue lock, as the receiver clears it there.
+        HAS_PENDING_IPIS
+            .get_on_cpu(cpu)
+            .store(true, Ordering::Release);
+    }
+
+    fn send(&self, cpu: CpuId, irq_guard: &DisabledLocalIrqGuard) {
+        let hw_cpu_id = self.hw_cpu_ids[cpu.as_usize()];
+        crate::arch::irq::send_ipi(hw_cpu_id, irq_guard)
+            .expect("failed to send inter-processor interrupt");
+    }
+}
+
+enum IpiCall {
+    Function(fn()),
+    Closure(Box<dyn FnOnce() + Send>),
 }
 
 cpu_local! {
-    static CALL_QUEUES: SpinLock<VecDeque<fn()>> = SpinLock::new(VecDeque::new());
+    static CALL_QUEUES: SpinLock<VecDeque<IpiCall>> = SpinLock::new(VecDeque::new());
     static HAS_PENDING_IPIS: AtomicBool = AtomicBool::new(false);
 }
 
@@ -158,16 +207,14 @@ cpu_local! {
 /// inter-processor interrupts.
 pub(crate) unsafe fn do_inter_processor_call(_trapframe: &TrapFrame) {
     // No races because we are in IRQs.
-    let this_cpu_id = crate::cpu::CpuId::current_racy();
+    let this_cpu_id = CpuId::current_racy();
 
     let mut queue = CALL_QUEUES.get_on_cpu(this_cpu_id).lock();
-    while let Some(call_fn) = queue.pop_front() {
-        crate::debug!(
-            "Performing inter-processor call to {:#?} on CPU {:#?}",
-            call_fn,
-            this_cpu_id,
-        );
-        call_fn();
+    while let Some(call) = queue.pop_front() {
+        match call {
+            IpiCall::Function(call_fn) => call_fn(),
+            IpiCall::Closure(call_fn) => call_fn(),
+        }
     }
     // Clear the pending flag before dropping the lock to avoid races.
     HAS_PENDING_IPIS
