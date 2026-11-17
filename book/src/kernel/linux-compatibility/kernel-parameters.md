@@ -228,3 +228,14 @@ i8042.exist
 i8042.exist=1
 i8042.exist=0
 ```
+
+### `ostd.riscv_pmu`
+
+Declare that the trusted RISC-V QEMU launcher enabled guest instruction counting.
+
+Set the value to `icount`.
+
+This parameter enables the PMU profile only on a single-vCPU QEMU `virt` guest
+with `Smcntrpmf`, OpenSBI 1.4 or newer, and a kernel built with `pmu`.
+Set it only when launching QEMU with `-icount`.
+On RISC-V, `perf_event_open` returns `EOPNOTSUPP` without this profile.
