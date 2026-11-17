@@ -3,6 +3,7 @@
   enableBenchmarkTest ? false,
   enableConformanceTest ? false,
   enableRegressionTest ? false,
+  includePackagedPerf ? false,
   conformanceTestSuite ? "ltp",
   conformanceTestWorkDir ? "/tmp",
   conformanceTestSelector ? "",
@@ -45,6 +46,7 @@ rec {
 
   initramfs = pkgs.callPackage ./initramfs.nix {
     inherit busybox;
+    perf = if includePackagedPerf then pkgs.linuxPackages.perf else null;
     benchmark = if enableBenchmarkTest then benchmark else null;
     conformance = if enableConformanceTest then conformance else null;
     regression = if enableRegressionTest then regression else null;

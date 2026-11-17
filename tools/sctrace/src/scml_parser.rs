@@ -6,8 +6,8 @@ use nom::{
     IResult,
     branch::alt,
     bytes::complete::{tag, take_while},
-    character::complete::{char, multispace0},
-    combinator::{opt, recognize},
+    character::complete::{char, digit1, multispace0},
+    combinator::{opt, recognize, verify},
     multi::{separated_list0, separated_list1},
     sequence::{delimited, pair, preceded},
 };
@@ -181,6 +181,12 @@ pub(crate) enum PatternArg<'a> {
     /// Matches integer arguments.
     Integer,
 
+    /// Matches nonnegative decimal or hexadecimal integers.
+    NonnegativeInteger,
+
+    /// Matches a specific negative decimal integer.
+    NegativeLiteral(&'a str),
+
     /// Matches path arguments.
     Path,
 
@@ -253,11 +259,14 @@ impl<'a> PatternFlagSet<'a> {
         // Validate that all elements are either Flag or Integer types
         for flag in &flags {
             match flag {
-                PatternArg::Flag(_) | PatternArg::Integer | PatternArg::FlagsVariable(_) => {
+                PatternArg::Flag(_)
+                | PatternArg::Integer
+                | PatternArg::NonnegativeInteger
+                | PatternArg::FlagsVariable(_) => {
                     // Valid flag type
                 }
                 _ => {
-                    panic!("PatternFlagSet can only contain Flag or Integer types");
+                    panic!("unsupported flag pattern component");
                 }
             }
         }
@@ -270,21 +279,30 @@ impl<'a> PatternFlagSet<'a> {
 /// exact field matching or allow additional fields via wildcard.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct PatternStruct<'a> {
-    fields: HashMap<&'a str, PatternArg<'a>>,
-    wildcard: bool,
+    fields: HashMap<&'a str, PatternField<'a>>,
+    extra_fields: ExtraFields,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct PatternField<'a> {
+    pub(crate) pattern: PatternArg<'a>,
+    pub(crate) defaults_to_zero: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ExtraFields {
+    Reject,
+    Zero,
+    Allow,
 }
 
 impl<'a> PatternStruct<'a> {
-    pub(crate) fn fields(&self) -> &HashMap<&'a str, PatternArg<'a>> {
+    pub(crate) fn fields(&self) -> &HashMap<&'a str, PatternField<'a>> {
         &self.fields
     }
 
-    pub(crate) fn wildcard(&self) -> bool {
-        self.wildcard
-    }
-
-    fn new(fields: HashMap<&'a str, PatternArg<'a>>, wildcard: bool) -> Self {
-        Self { fields, wildcard }
+    pub(crate) fn extra_fields(&self) -> ExtraFields {
+        self.extra_fields
     }
 }
 
@@ -584,8 +602,16 @@ impl<'a> Pattern<'a> {
         alt((
             |i| Self::parse_struct(ctx, i),
             |i| Self::parse_array(ctx, i),
+            Self::parse_negative_literal,
+            |i| {
+                let (i, flags) = Self::parse_flags(ctx, i)?;
+                let arg = match flags.flags().as_slice() {
+                    [arg @ (PatternArg::Integer | PatternArg::NonnegativeInteger)] => arg.clone(),
+                    _ => PatternArg::Flags(flags),
+                };
+                Ok((i, arg))
+            },
             Self::parse_builtin_type,
-            |i| Self::parse_flags(ctx, i),
             |i| Self::parse_struct_variable(ctx, i),
             |i| Self::parse_flags_variable(ctx, i),
         ))(input)
@@ -606,42 +632,49 @@ impl<'a> Pattern<'a> {
 
         let (input, _) = multispace0(input)?;
 
-        // Check for wildcard (..)
-        let (input, wildcard) = opt(preceded(
+        let (input, extra) = opt(preceded(
             opt(char(',')),
-            delimited(multispace0, tag(".."), multispace0),
+            delimited(multispace0, alt((tag("..0"), tag(".."))), multispace0),
         ))(input)?;
 
         let (input, _) = multispace0(input)?;
         let (input, _) = char('}')(input)?;
-
-        let mut field_map = HashMap::new();
-        for (name, arg) in fields {
-            field_map.insert(name, arg);
-        }
-
-        let has_wildcard = wildcard.is_some();
+        let extra_fields = match extra {
+            Some("..0") => ExtraFields::Zero,
+            Some(_) => ExtraFields::Allow,
+            None => ExtraFields::Reject,
+        };
         Ok((
             input,
-            PatternArg::Struct(PatternStruct::new(field_map, has_wildcard)),
+            PatternArg::Struct(PatternStruct {
+                fields: fields.into_iter().collect(),
+                extra_fields,
+            }),
         ))
     }
 
     fn parse_struct_field(
         ctx: &ParserCtxBuilder<'a>,
         input: &'a str,
-    ) -> IResult<&'a str, (&'a str, PatternArg<'a>)> {
+    ) -> IResult<&'a str, (&'a str, PatternField<'a>)> {
         let (input, _) = multispace0(input)?;
         let (input, name) = identifier(input)?;
+        let (input, question) = opt(char('?'))(input)?;
         let (input, _) = multispace0(input)?;
-
-        if let Ok((input, _)) = char::<&str, nom::error::Error<&str>>('=')(input) {
-            let (input, _) = multispace0(input)?;
-            let (input, expr) = Self::parse_expr(ctx, input)?;
-            Ok((input, (name, expr)))
-        } else {
-            Ok((input, (name, PatternArg::None)))
-        }
+        let (input, expr) = opt(preceded(
+            delimited(multispace0, char('='), multispace0),
+            |i| Self::parse_expr(ctx, i),
+        ))(input)?;
+        Ok((
+            input,
+            (
+                name,
+                PatternField {
+                    pattern: expr.unwrap_or(PatternArg::None),
+                    defaults_to_zero: question.is_some(),
+                },
+            ),
+        ))
     }
 
     fn parse_array(ctx: &ParserCtxBuilder<'a>, input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
@@ -658,15 +691,22 @@ impl<'a> Pattern<'a> {
         Ok((input, PatternArg::Array(PatternArray::new(elements))))
     }
 
-    fn parse_flags(ctx: &ParserCtxBuilder<'a>, input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
+    fn parse_flags(
+        ctx: &ParserCtxBuilder<'a>,
+        input: &'a str,
+    ) -> IResult<&'a str, PatternFlagSet<'a>> {
         let (input, flags) = separated_list1(
             delimited(multispace0, char('|'), multispace0),
-            alt((Self::parse_builtin_type, Self::parse_flag, |i| {
-                Self::parse_flags_variable(ctx, i)
-            })),
+            alt((
+                verify(Self::parse_builtin_type, |arg| {
+                    matches!(arg, PatternArg::Integer | PatternArg::NonnegativeInteger)
+                }),
+                Self::parse_flag,
+                |i| Self::parse_flags_variable(ctx, i),
+            )),
         )(input)?;
 
-        Ok((input, PatternArg::Flags(PatternFlagSet::new(flags))))
+        Ok((input, PatternFlagSet::new(flags)))
     }
 
     fn parse_builtin_type(input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
@@ -677,12 +717,18 @@ impl<'a> Pattern<'a> {
 
         match type_name {
             "INTEGER" => Ok((input, PatternArg::Integer)),
+            "NONNEGATIVE_INTEGER" => Ok((input, PatternArg::NonnegativeInteger)),
             "PATH" => Ok((input, PatternArg::Path)),
             _ => Err(nom::Err::Error(nom::error::Error::new(
                 input,
                 nom::error::ErrorKind::Tag,
             ))),
         }
+    }
+
+    fn parse_negative_literal(input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
+        let (input, literal) = recognize(pair(char('-'), digit1))(input)?;
+        Ok((input, PatternArg::NegativeLiteral(literal)))
     }
 
     fn parse_flags_variable(
@@ -747,7 +793,7 @@ impl<'a> Pattern<'a> {
         let (input, _) = multispace0(input)?;
         let (input, _) = char(';')(input)?;
 
-        Ok((input, (name, flags)))
+        Ok((input, (name, PatternArg::Flags(flags))))
     }
 
     fn parse_struct_definition(

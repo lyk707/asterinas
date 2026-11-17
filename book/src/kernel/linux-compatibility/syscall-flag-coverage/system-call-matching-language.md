@@ -146,6 +146,8 @@ struct sigaction = {
 ```
 
 Here, `..` is a wildcard for remaining fields that we do not care.
+Use `..0` instead to allow extra fields only when their decoded values are zero.
+Append `?` to a field name to match an omitted field against a default value of zero.
 
 Then, we can write a system call rule that
 refers to the struct rule using the `<struct_rule>` syntax.
@@ -198,8 +200,7 @@ Notice how SCML denotes an array with the `[ <struct_rule> ]` syntax.
 Bitflags-based matching rules described above are expressive enough to
 capture most patterns of interesting system call arguments.
 But some system call arguments cannot be characterized with bitflags.
-To address such cases, SCML introduces two special built-in matching rules:
-`<PATH>` and `<INTEGER>`
+SCML provides `<PATH>`, `<INTEGER>`, and `<NONNEGATIVE_INTEGER>` for these cases.
 
 #### The file path matching rule
 
@@ -231,6 +232,8 @@ The `<INTEGER>` matching rule can match any integer system call argument
 such as `1234`, `-100`, `0xdeadbeef`, and `0o666`.
 It can be used as a fallback rule
 when a system call takes an argument of either bitflags or integer.
+Use `<NONNEGATIVE_INTEGER>` to match nonnegative decimal or hexadecimal arguments.
+A negative decimal literal such as `group_fd = -1` matches that specific value.
 
 ```c
 timer_create(
@@ -351,12 +354,10 @@ Non‑terminals are in angle brackets, terminals in quotes.
                    | <array-pattern>
 
 <struct-rule>    ::= 'struct' <identifier> '=' <struct-pattern>
-<struct-pattern> ::= '{' <field-list> [ ',' '..' ] '}'
+<struct-pattern> ::= '{' <field-list> [ ',' ( '..' | '..0' ) ] '}'
 <field-list>     ::= <field> { ',' <field> }
-<field>          ::= <identifier>
-                   | <identifier> '=' <flag-pattern>
-                   | <identifier> '=' <struct-pattern>
-                   | <identifier> '=' <array-pattern>
+<field>          ::= <identifier> [ '?' ] [ '=' <field-pattern> ]
+<field-pattern>  ::= <flag-pattern> | <struct-pattern> | <array-pattern>
 
 <bitflags-rule>  ::= <identifier> '=' <flag-pattern>
 

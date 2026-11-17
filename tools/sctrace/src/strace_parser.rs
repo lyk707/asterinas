@@ -269,6 +269,10 @@ impl Syscall<'_> {
             Self::parse_array,
             Self::parse_quoted_string,
             Self::parse_mask,
+            nom::combinator::verify(
+                Self::parse_flags,
+                |arg| matches!(arg, SyscallArg::Flags(flags) if flags.flags().len() > 1),
+            ),
             Self::parse_hex,
             Self::parse_number,
             Self::parse_flags,

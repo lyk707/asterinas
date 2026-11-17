@@ -2,7 +2,8 @@
 
 use crate::{
     scml_parser::{
-        ParserCtx, Pattern, PatternArg, PatternArray, PatternFlagSet, PatternStruct, Patterns,
+        ExtraFields, ParserCtx, Pattern, PatternArg, PatternArray, PatternFlagSet, PatternStruct,
+        Patterns,
     },
     strace_parser::{Syscall, SyscallArg, SyscallArray, SyscallFlagSet, SyscallStruct},
 };
@@ -58,6 +59,16 @@ impl<'a> Matcher<'a> {
 
             // Type constraint - matches only integer arguments
             PatternArg::Integer => matches!(syscall_arg, SyscallArg::Integer(_)),
+            PatternArg::NonnegativeInteger => match syscall_arg {
+                SyscallArg::Integer(value) => match value.strip_prefix("0x") {
+                    Some(hex) => u64::from_str_radix(hex, 16).is_ok(),
+                    None => value.parse::<u64>().is_ok(),
+                },
+                _ => false,
+            },
+            PatternArg::NegativeLiteral(expected) => {
+                matches!(syscall_arg, SyscallArg::Integer(value) if value == expected)
+            }
 
             // Path matching not yet implemented
             PatternArg::Path => todo!("Path matching not implemented yet"),
@@ -65,7 +76,8 @@ impl<'a> Matcher<'a> {
             // Flag set matching - supports both zero values and flag combinations
             PatternArg::Flags(pattern_flags) => match syscall_arg {
                 // Special case: integer zero matches any flag pattern
-                SyscallArg::Integer(value) if *value == "0" => true,
+                SyscallArg::Integer("0" | "0x0") => true,
+                SyscallArg::Integer(_) => Self::matches_flag(ctx, syscall_arg, pattern_flags),
                 // Validate that all syscall flags are present in pattern
                 SyscallArg::Flags(syscall_flags) => {
                     Self::matches_flags(ctx, syscall_flags, pattern_flags)
@@ -156,13 +168,6 @@ impl<'a> Matcher<'a> {
         syscall_flag: &SyscallArg,
         pattern_flags: &PatternFlagSet,
     ) -> bool {
-        match syscall_flag {
-            SyscallArg::Flag(_) => (),
-            _ => {
-                panic!("Syscall flag must be of type Flag for flag matching");
-            }
-        };
-
         let mut found_match = false;
 
         for pattern_flag in pattern_flags.flags() {
@@ -176,9 +181,11 @@ impl<'a> Matcher<'a> {
                 }
 
                 // Integer flag matching - pattern accepts any integer
-                (SyscallArg::Integer(_), PatternArg::Integer) => {
-                    found_match = true;
-                    break;
+                (SyscallArg::Integer(_), PatternArg::Integer | PatternArg::NonnegativeInteger) => {
+                    if Self::matches_arg(ctx, syscall_flag, pattern_flag) {
+                        found_match = true;
+                        break;
+                    }
                 }
 
                 // Flags variable - expand and attempt matching
@@ -215,28 +222,28 @@ impl<'a> Matcher<'a> {
         syscall_struct: &SyscallStruct,
         pattern_struct: &PatternStruct,
     ) -> bool {
-        // Without wildcard, field count must match exactly
-        if !pattern_struct.wildcard()
-            && syscall_struct.fields().len() != pattern_struct.fields().len()
-        {
-            return false;
-        }
-
-        // Every pattern field must be found and matched in the syscall struct
-        for (pattern_field_name, pattern_field_value) in pattern_struct.fields() {
-            match syscall_struct.get_value(pattern_field_name) {
-                Some(syscall_field_value) => {
-                    if !Self::matches_arg(ctx, syscall_field_value, pattern_field_value) {
-                        return false;
-                    }
+        if pattern_struct.extra_fields() != ExtraFields::Allow {
+            for (name, value) in syscall_struct.fields() {
+                if pattern_struct.fields().contains_key(name) {
+                    continue;
                 }
-                None => {
-                    // Required pattern field not found in syscall
+                if pattern_struct.extra_fields() != ExtraFields::Zero
+                    || !matches!(value, SyscallArg::Integer("0" | "0x0"))
+                {
                     return false;
                 }
             }
         }
 
-        true
+        pattern_struct
+            .fields()
+            .iter()
+            .all(|(name, field)| match syscall_struct.get_value(name) {
+                Some(value) => Self::matches_arg(ctx, value, &field.pattern),
+                None => {
+                    field.defaults_to_zero
+                        && Self::matches_arg(ctx, &SyscallArg::Integer("0"), &field.pattern)
+                }
+            })
     }
 }

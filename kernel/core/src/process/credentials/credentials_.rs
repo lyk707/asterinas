@@ -263,26 +263,24 @@ impl Credentials_ {
         let old_euid = self.euid();
         let old_suid = self.suid();
 
-        let new_ruid = if let Some(ruid) = ruid {
-            self.ruid.store(ruid, Ordering::Relaxed);
-            ruid
-        } else {
-            old_ruid
-        };
+        let new_ruid = ruid.unwrap_or(old_ruid);
+        let new_euid = euid.unwrap_or(old_euid);
+        let new_suid = suid.unwrap_or(old_suid);
 
-        let new_euid = if let Some(euid) = euid {
-            self.euid.store(euid, Ordering::Relaxed);
-            euid
-        } else {
-            old_euid
-        };
-
-        let new_suid = if let Some(suid) = suid {
-            self.suid.store(suid, Ordering::Relaxed);
-            suid
-        } else {
-            old_suid
-        };
+        self.update_access_ids(
+            (new_ruid, new_euid, new_suid) != (old_ruid, old_euid, old_suid),
+            || {
+                if let Some(ruid) = ruid {
+                    self.ruid.store(ruid, Ordering::Relaxed);
+                }
+                if let Some(euid) = euid {
+                    self.euid.store(euid, Ordering::Relaxed);
+                }
+                if let Some(suid) = suid {
+                    self.suid.store(suid, Ordering::Relaxed);
+                }
+            },
+        );
 
         self.set_fsuid_unchecked(new_euid);
 
@@ -474,19 +472,44 @@ impl Credentials_ {
     }
 
     fn set_resgid_unchecked(&self, rgid: Option<Gid>, egid: Option<Gid>, sgid: Option<Gid>) {
-        if let Some(rgid) = rgid {
-            self.rgid.store(rgid, Ordering::Relaxed);
-        }
-
-        if let Some(egid) = egid {
-            self.egid.store(egid, Ordering::Relaxed);
-        }
-
-        if let Some(sgid) = sgid {
-            self.sgid.store(sgid, Ordering::Relaxed);
-        }
+        self.update_access_ids(
+            rgid.is_some_and(|gid| gid != self.rgid())
+                || egid.is_some_and(|gid| gid != self.egid())
+                || sgid.is_some_and(|gid| gid != self.sgid()),
+            || {
+                if let Some(rgid) = rgid {
+                    self.rgid.store(rgid, Ordering::Relaxed);
+                }
+                if let Some(egid) = egid {
+                    self.egid.store(egid, Ordering::Relaxed);
+                }
+                if let Some(sgid) = sgid {
+                    self.sgid.store(sgid, Ordering::Relaxed);
+                }
+            },
+        );
 
         self.set_fsgid_unchecked(self.egid());
+    }
+
+    fn update_access_ids(&self, changed: bool, update: impl FnOnce()) {
+        #[cfg(feature = "pmu")]
+        {
+            use crate::{process::posix_thread::AsPosixThread, thread::Thread};
+
+            // Live credential writers act on the current POSIX thread.
+            if changed
+                && let Some(thread) = Thread::current()
+                && let Some(posix_thread) = thread.as_posix_thread()
+                && core::ptr::eq(self, posix_thread.credentials().0.as_ref())
+            {
+                thread.perf().change_access_ids(update);
+                return;
+            }
+        }
+        #[cfg(not(feature = "pmu"))]
+        let _ = changed;
+        update();
     }
 
     fn set_fsgid_unchecked(&self, fsuid: Gid) {
