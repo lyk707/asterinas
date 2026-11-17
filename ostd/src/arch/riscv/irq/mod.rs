@@ -49,18 +49,14 @@ impl HwIrqLine {
 
     pub(crate) fn ack(&self) {
         match &self.source {
-            InterruptSource::Timer => {}
+            // Software interrupts are acknowledged before the IRQ callbacks run.
+            InterruptSource::Timer | InterruptSource::Software => {}
             InterruptSource::External(interrupt_source_on_chip) => {
                 IRQ_CHIP.get().unwrap().complete_interrupt(
                     // No races because we are in IRQs.
                     crate::arch::boot::smp::get_current_hart_id(),
                     *interrupt_source_on_chip,
                 );
-            }
-            InterruptSource::Software => {
-                // SAFETY: We have already handled the IPI. So clearing the
-                // software interrupt pending bit is safe.
-                unsafe { riscv::register::sip::clear_ssoft() };
             }
         }
     }

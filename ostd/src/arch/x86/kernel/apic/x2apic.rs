@@ -73,24 +73,21 @@ impl super::Apic for X2Apic {
         unsafe { wrmsr(IA32_X2APIC_EOI, 0) };
     }
 
-    unsafe fn send_ipi(&self, icr: super::Icr) {
+    unsafe fn send_ipi(&self, icr: super::Icr) -> crate::Result<()> {
         let _guard = crate::irq::disable_local();
 
         // SAFETY: These operations write the interrupt command to APIC and wait for results. The
         // caller guarantees it's safe to execute this interrupt command.
         unsafe {
             wrmsr(IA32_X2APIC_ESR, 0);
+            rdmsr(IA32_X2APIC_ESR);
             wrmsr(IA32_X2APIC_ICR, icr.0);
-            loop {
-                let icr = rdmsr(IA32_X2APIC_ICR);
-                if ((icr >> 12) & 0x1) == 0 {
-                    break;
-                }
-                if rdmsr(IA32_X2APIC_ESR) > 0 {
-                    break;
-                }
+            wrmsr(IA32_X2APIC_ESR, 0);
+            if rdmsr(IA32_X2APIC_ESR) != 0 {
+                return Err(crate::Error::IoError);
             }
         }
+        Ok(())
     }
 }
 

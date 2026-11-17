@@ -110,6 +110,10 @@ pub(super) fn handle_irq(trap_frame: &TrapFrame, interrupt: Interrupt, priv_leve
             }
         }
         Interrupt::SupervisorSoft => {
+            // Clear SSIP before draining the IPI queue so an IPI raised during
+            // dispatch remains pending for the next trap.
+            // SAFETY: This acknowledges the current hart's software interrupt.
+            unsafe { riscv::register::sip::clear_ssoft() };
             let ipi_irq_num = super::irq::ipi::IPI_IRQ.get().unwrap().num();
             call_irq_callback_functions(
                 trap_frame,

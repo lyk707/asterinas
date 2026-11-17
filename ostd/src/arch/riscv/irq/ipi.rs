@@ -72,3 +72,56 @@ pub(crate) fn send_ipi(hw_cpu_id: HwCpuId, _guard: &dyn PinCurrentCpu) -> Result
         Err(Error::IoError)
     }
 }
+
+#[cfg(ktest)]
+mod tests {
+    use alloc::sync::Arc;
+    use core::{
+        hint::spin_loop,
+        sync::atomic::{AtomicBool, Ordering},
+    };
+
+    use crate::{
+        cpu::{CpuId, CpuSet, PinCurrentCpu, all_cpus},
+        prelude::ktest,
+        smp, task,
+        timer::{Jiffies, TIMER_FREQ},
+    };
+
+    #[ktest]
+    fn software_ipi_raised_during_dispatch_is_delivered() {
+        let preempt_guard = task::disable_preempt();
+        let Some(target) = all_cpus().find(|cpu| *cpu != preempt_guard.current_cpu()) else {
+            return;
+        };
+        let delivered = Arc::new(AtomicBool::new(false));
+        let delivered_on_target = delivered.clone();
+        let reasserted = AtomicBool::new(false);
+
+        let mut irq = super::IPI_IRQ.get().unwrap().clone();
+        irq.on_active(move |_| {
+            if CpuId::current_racy() != target {
+                return;
+            }
+            if reasserted.swap(true, Ordering::Relaxed) {
+                delivered_on_target.store(true, Ordering::Release);
+            } else {
+                // This callback runs after the IPI queue callback. Raise SSIP
+                // directly to reproduce the arrival of a second notification.
+                // SAFETY: This only raises the current hart's software
+                // interrupt, which is handled once local IRQs are re-enabled.
+                unsafe { riscv::register::sip::set_ssoft() };
+            }
+        });
+
+        let deadline = Jiffies::elapsed().as_u64() + TIMER_FREQ;
+        let _ = smp::inter_processor_call(&CpuSet::from(target), || {});
+        while !delivered.load(Ordering::Acquire) {
+            assert!(
+                Jiffies::elapsed().as_u64() < deadline,
+                "software IPI raised during dispatch was lost"
+            );
+            spin_loop();
+        }
+    }
+}

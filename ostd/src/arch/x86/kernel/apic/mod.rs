@@ -115,8 +115,14 @@ pub(in crate::arch) trait Apic: ApicTimer {
     /// End of Interrupt, this function will inform APIC that this interrupt has been processed.
     fn eoi(&self);
 
-    /// Send a general inter-processor interrupt.
-    unsafe fn send_ipi(&self, icr: Icr);
+    /// Sends the interrupt described by `icr`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must provide a command valid for the local APIC and the addressed CPUs.
+    /// In particular, the caller must ensure that INIT and STARTUP commands are safe
+    /// for every addressed CPU.
+    unsafe fn send_ipi(&self, icr: Icr) -> crate::Result<()>;
 }
 
 pub(in crate::arch) trait ApicTimer {
@@ -368,5 +374,40 @@ pub(in crate::arch) fn init(io_mem_builder: &IoMemAllocatorBuilder) -> Result<()
     } else {
         crate::warn!("Neither x2APIC nor xAPIC found!");
         Err(ApicInitError::NoApic)
+    }
+}
+
+fn wait_for_ipi_delivery(mut status: impl FnMut() -> (bool, bool)) -> crate::Result<()> {
+    const MAX_POLLS: usize = 100_000;
+    for _ in 0..MAX_POLLS {
+        let (pending, failed) = status();
+        if failed {
+            return Err(crate::Error::IoError);
+        }
+        if !pending {
+            return Ok(());
+        }
+        core::hint::spin_loop();
+    }
+    Err(crate::Error::IoError)
+}
+
+#[cfg(ktest)]
+mod tests {
+    use crate::prelude::*;
+
+    #[ktest]
+    fn xapic_delivery_reports_errors_even_when_idle() {
+        assert!(super::wait_for_ipi_delivery(|| (false, true)).is_err());
+        assert!(super::wait_for_ipi_delivery(|| (true, false)).is_err());
+        let mut attempts = 0;
+        assert!(
+            super::wait_for_ipi_delivery(|| {
+                attempts += 1;
+                (attempts == 1, false)
+            })
+            .is_ok()
+        );
+        assert_eq!(attempts, 2);
     }
 }
