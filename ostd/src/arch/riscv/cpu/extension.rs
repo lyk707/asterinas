@@ -220,6 +220,7 @@ define_isa_extensions! {
     ZVFBFWMA    = 96, "zvfbfwma",    "Vector BF16 widening mul-add";
     ZAAMO       = 97, "zaamo",       "Atomic memory operations";
     ZALRSC      = 98, "zalrsc",      "Load-reserved/store-conditional";
+    SMCNTRPMF   = 99, "smcntrpmf",   "Cycle and instret privilege mode filtering";
 }
 
 #[cfg(ktest)]
@@ -362,6 +363,14 @@ mod tests {
             shared_isa_extensions([IsaExtensions::all(), IsaExtensions::empty()].into_iter())
                 .is_empty()
         );
+    }
+
+    #[ktest]
+    fn pmu_filter_extensions() {
+        let expected = IsaExtensions::SMCNTRPMF | IsaExtensions::SSCOFPMF;
+        assert!(parse_isa_string_wrapper("rv64imac_smcntrpmf_sscofpmf").contains(expected));
+        assert!(parse_isa_extensions_list_wrapper(&["smcntrpmf", "sscofpmf"]).contains(expected));
+        assert!(!parse_isa_string_wrapper("rv64imac").intersects(expected));
     }
 
     #[ktest]

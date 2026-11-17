@@ -57,7 +57,7 @@ x86_64.workspace = true
 bit_field.workspace = true
 fdt.workspace = true
 riscv.workspace = true
-sbi-rt.workspace = true
+sbi-rt = { workspace = true, features = ["integer-impls"] }
 unwinding = { workspace = true, features = ["fde-static"] }
 
 [target.loongarch64-unknown-none-softfloat.dependencies]
@@ -76,6 +76,8 @@ cvm_guest = ["dep:tdx-guest"]
 coverage = ["minicov"]
 pvh_boot = []
 riscv_sv39_mode = []
+# Hardware PMU counting.
+pmu = []
 
 [lints]
 workspace = true
