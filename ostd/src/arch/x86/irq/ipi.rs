@@ -33,9 +33,21 @@ pub(in crate::arch) fn init() {
 
 /// Sends a general inter-processor interrupt (IPI) to the specified CPU.
 pub(crate) fn send_ipi(hw_cpu_id: HwCpuId, guard: &dyn PinCurrentCpu) -> Result<()> {
-    use crate::arch::kernel::apic::{self, Icr};
-
     let irq_num = IPI_IRQ.get().unwrap().num();
+    let apic = crate::arch::kernel::apic::get_or_init(guard);
+    send_fixed_ipi(hw_cpu_id, irq_num, |icr| {
+        // SAFETY: The CPU ID comes from the hardware topology.
+        // The fixed vector is allocated for inter-processor calls.
+        unsafe { apic.send_ipi(icr) }
+    })
+}
+
+fn send_fixed_ipi(
+    hw_cpu_id: HwCpuId,
+    irq_num: u8,
+    send: impl FnOnce(crate::arch::kernel::apic::Icr) -> Result<()>,
+) -> Result<()> {
+    use crate::arch::kernel::apic::{self, Icr};
 
     let icr = Icr::new(
         apic::ApicId::from(hw_cpu_id.0),
@@ -48,10 +60,18 @@ pub(crate) fn send_ipi(hw_cpu_id: HwCpuId, guard: &dyn PinCurrentCpu) -> Result<
         irq_num,
     );
 
-    let apic = apic::get_or_init(guard);
-    // SAFETY: The ICR is valid to generate the request IPI. Generating the
-    // request IPI is safe.
-    unsafe { apic.send_ipi(icr) };
+    send(icr)
+}
 
-    Ok(())
+#[cfg(ktest)]
+mod tests {
+    use crate::prelude::*;
+
+    #[ktest]
+    fn fixed_ipi_adapter_propagates_apic_failure() {
+        assert_eq!(
+            super::send_fixed_ipi(super::HwCpuId(1), 0x40, |_| Err(crate::Error::IoError)),
+            Err(crate::Error::IoError),
+        );
+    }
 }

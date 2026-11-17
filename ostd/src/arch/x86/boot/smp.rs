@@ -294,7 +294,7 @@ unsafe fn send_startup_to_all_aps(apic: &dyn Apic) {
         (AP_BOOT_START_PA / PAGE_SIZE) as u8,
     );
     // SAFETY: The safety is upheld by the caller.
-    unsafe { apic.send_ipi(icr) }
+    unsafe { apic.send_ipi(icr) }.expect("failed to send AP startup IPI");
 }
 
 /// # Safety
@@ -312,7 +312,7 @@ unsafe fn send_init_to_all_aps(apic: &dyn Apic) {
         0,
     );
     // SAFETY: The safety is upheld by the caller.
-    unsafe { apic.send_ipi(icr) };
+    unsafe { apic.send_ipi(icr) }.expect("failed to send AP startup IPI");
 }
 
 /// # Safety
@@ -330,7 +330,7 @@ unsafe fn send_init_deassert(apic: &dyn Apic) {
         0,
     );
     // SAFETY: The safety is upheld by the caller.
-    unsafe { apic.send_ipi(icr) };
+    unsafe { apic.send_ipi(icr) }.expect("failed to send AP startup IPI");
 }
 
 /// Spin wait approximately `c` cycles.

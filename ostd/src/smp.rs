@@ -5,19 +5,26 @@
 //! This module provides a way to execute code on other processors via inter-
 //! processor interrupts.
 //!
-//! Callers issue work with [`inter_processor_call`]. Remote calls are queued for
+//! Callers issue work with [`inter_processor_call`].
+//! Remote calls are queued for
 //! interrupt-context execution and return a [`PendingIpis`] handle that can be
 //! waited on when the caller needs completion.
 
-use alloc::{boxed::Box, collections::VecDeque};
-use core::sync::atomic::{AtomicBool, Ordering};
+use alloc::{
+    boxed::Box,
+    collections::{BTreeMap, VecDeque},
+    sync::Arc,
+};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use spin::Once;
 
 use crate::{
     arch::{irq::HwCpuId, trap::TrapFrame},
-    cpu::{CpuSet, PinCurrentCpu},
-    cpu_local, irq,
+    cpu::{CpuId, CpuSet, PinCurrentCpu},
+    cpu_local,
+    irq::{self, DisabledLocalIrqGuard},
+    prelude::Result,
     sync::SpinLock,
     util::id_set::Id,
 };
@@ -25,13 +32,14 @@ use crate::{
 /// Executes a function on other processors.
 ///
 /// The provided function `call_fn` will be executed on all target processors
-/// specified by `targets`. It can also be executed on the current processor.
+/// specified by `targets`.
+/// It can also be executed on the current processor.
 /// The function should be short and non-blocking, as it will be executed in
 /// interrupt context with interrupts disabled.
 ///
 /// The function `call_fn` will be executed asynchronously on the target
-/// processors. However, if called on the current processor, it will be
-/// synchronous.
+/// processors.
+/// A call on the current processor is synchronous.
 ///
 /// The returned [`PendingIpis`] can be used to wait until all remote target
 /// processors have handled IPIs for this call.
@@ -45,48 +53,99 @@ pub fn inter_processor_call(targets: &CpuSet, call_fn: fn()) -> PendingIpis {
     ipi_sender.inter_processor_call(targets, call_fn)
 }
 
+/// Runs a short, non-blocking function on `cpu` with interrupts disabled and
+/// returns its result.
+/// The function must not send IPIs or wait for another CPU.
+///
+/// # Panics
+///
+/// Panics if local interrupts are disabled.
+///
+/// # Errors
+///
+/// Returns an error if the destination queue is full or delivery fails before the
+/// destination claims the callback. An error guarantees the callback will not run.
+pub fn call_on_cpu<R: Send + 'static>(
+    cpu: CpuId,
+    call_fn: impl FnOnce() -> R + Send + 'static,
+) -> Result<R> {
+    assert!(crate::arch::irq::is_local_enabled());
+    let irq_guard = irq::disable_local();
+    if irq_guard.current_cpu() == cpu {
+        return Ok(call_fn());
+    }
+
+    let result = Arc::new(Once::new());
+    let remote_result = result.clone();
+    let sender = IPI_SENDER.get().unwrap();
+    sender.submit(
+        cpu,
+        IpiCall::Closure(Box::new(move || {
+            remote_result.call_once(|| SpinLock::<Option<R>>::new(Some(call_fn())));
+        })),
+        &irq_guard,
+    )?;
+    drop(irq_guard);
+
+    let value = result.wait().lock().take().unwrap();
+    Ok(value)
+}
+
+/// Runs a short, non-blocking function with interrupts disabled on `cpu`.
+///
+/// A local call runs immediately.
+/// A remote call returns once the destination is notified or claims the callback.
+///
+/// # Errors
+///
+/// Returns an error if the destination queue is full or delivery fails before the
+/// destination claims the callback. An error guarantees the callback will not run.
+pub fn call_on_cpu_async(cpu: CpuId, call_fn: fn()) -> Result<()> {
+    let irq_guard = irq::disable_local();
+    if irq_guard.current_cpu() == cpu {
+        call_fn();
+        return Ok(());
+    }
+    IPI_SENDER
+        .get()
+        .unwrap()
+        .submit(cpu, IpiCall::Function(call_fn), &irq_guard)
+}
+
 /// Pending remote inter-processor calls.
 pub struct PendingIpis {
-    cpus: CpuSet,
+    calls: BTreeMap<usize, u64>,
 }
 
 impl PendingIpis {
-    pub(crate) fn new_empty() -> Self {
+    pub(crate) const fn new_empty() -> Self {
         Self {
-            cpus: CpuSet::new_empty(),
+            calls: BTreeMap::new(),
         }
-    }
-
-    fn add(&mut self, cpu_id: crate::cpu::CpuId) {
-        self.cpus.add(cpu_id);
     }
 
     pub(crate) fn extend(&mut self, other: &Self) {
-        for cpu_id in other.cpus.iter() {
-            self.add(cpu_id);
+        for (&cpu, &sequence) in &other.calls {
+            let latest = self.calls.entry(cpu).or_insert(sequence);
+            *latest = (*latest).max(sequence);
         }
     }
 
-    /// Waits until all pending remote processors have handled their IPIs.
+    /// Waits until the requested remote calls have finished.
     ///
     /// # Panics
     ///
-    /// This method panics if local IRQs are disabled. Waiting for remote IPIs
-    /// with local IRQs disabled can deadlock if one of the remote processors is
-    /// also waiting for this processor to handle an IPI.
+    /// Panics if local interrupts are disabled. The remote CPUs may be
+    /// waiting for this processor to handle an IPI.
     pub fn wait(&self) {
         assert!(
             crate::arch::irq::is_local_enabled(),
             "waiting for remote inter-processor calls with IRQs disabled"
         );
 
-        for cpu_id in self.cpus.iter() {
-            // Wait until there are no pending IPIs on the target CPU.
-            //
-            // Note that if new IPIs arrive to that CPU in the meantime, we
-            // will also wait for them. This is fine because there usually
-            // aren't too many IPIs in common cases.
-            while HAS_PENDING_IPIS.get_on_cpu(cpu_id).load(Ordering::Acquire) {
+        for (&cpu, &sequence) in &self.calls {
+            let completed = LAST_COMPLETED_CALL.get_on_cpu(CpuId::new(cpu as u32));
+            while completed.load(Ordering::Acquire) < sequence {
                 core::hint::spin_loop();
             }
         }
@@ -107,7 +166,8 @@ pub(crate) static IPI_SENDER: Once<IpiSender> = Once::new();
 impl IpiSender {
     /// Executes a function on other processors.
     ///
-    /// See [`inter_processor_call`] for details. The purpose of exporting this
+    /// See [`inter_processor_call`] for details.
+    /// The purpose of exporting this
     /// method is to enable callers to check whether [`IPI_SENDER`] has been
     /// initialized.
     pub(crate) fn inter_processor_call(&self, targets: &CpuSet, call_fn: fn()) -> PendingIpis {
@@ -121,20 +181,19 @@ impl IpiSender {
                 call_on_self = true;
                 continue;
             }
-            let mut call_queue = CALL_QUEUES.get_on_cpu(cpu_id).lock();
-            call_queue.push_back(call_fn);
-            // Set the pending flag before dropping the lock to avoid races.
-            HAS_PENDING_IPIS
+            // Existing callers can submit mandatory work with IRQs disabled.
+            // Admission cannot wait for space on the destination.
+            let sequence = CALL_QUEUES
                 .get_on_cpu(cpu_id)
-                .store(true, Ordering::Release);
-            pending_ipis.add(cpu_id);
+                .lock()
+                .push(IpiCall::Function(call_fn));
+            pending_ipis.calls.insert(cpu_id.as_usize(), sequence);
         }
         for cpu_id in targets.iter() {
             if cpu_id == this_cpu_id {
                 continue;
             }
-            let hw_cpu_id = self.hw_cpu_ids[cpu_id.as_usize()];
-            crate::arch::irq::send_ipi(hw_cpu_id, &irq_guard as _)
+            self.send(cpu_id, &irq_guard)
                 .expect("failed to send inter-processor interrupt");
         }
         if call_on_self {
@@ -143,11 +202,89 @@ impl IpiSender {
         }
         pending_ipis
     }
+
+    fn submit(&self, cpu: CpuId, call: IpiCall, irq_guard: &DisabledLocalIrqGuard) -> Result<()> {
+        let queue = CALL_QUEUES.get_on_cpu(cpu);
+        enqueue_and_signal(queue, call, || self.send(cpu, irq_guard))
+    }
+
+    fn send(&self, cpu: CpuId, irq_guard: &DisabledLocalIrqGuard) -> Result<()> {
+        let hw_cpu_id = self.hw_cpu_ids[cpu.as_usize()];
+        crate::arch::irq::send_ipi(hw_cpu_id, irq_guard)
+    }
+}
+
+enum IpiCall {
+    Function(fn()),
+    Closure(Box<dyn FnOnce() + Send>),
+}
+
+const MAX_PENDING_CALLS: usize = 64;
+const CALLS_PER_INTERRUPT: usize = 32;
+
+struct QueuedCall {
+    sequence: u64,
+    call: IpiCall,
+}
+
+struct CallQueue {
+    calls: VecDeque<QueuedCall>,
+    last_sequence: u64,
+}
+
+impl CallQueue {
+    const fn new() -> Self {
+        Self {
+            calls: VecDeque::new(),
+            last_sequence: 0,
+        }
+    }
+
+    fn push(&mut self, call: IpiCall) -> u64 {
+        self.last_sequence = self
+            .last_sequence
+            .checked_add(1)
+            .expect("IPI sequence exhausted");
+        let sequence = self.last_sequence;
+        self.calls.push_back(QueuedCall { sequence, call });
+        sequence
+    }
 }
 
 cpu_local! {
-    static CALL_QUEUES: SpinLock<VecDeque<fn()>> = SpinLock::new(VecDeque::new());
-    static HAS_PENDING_IPIS: AtomicBool = AtomicBool::new(false);
+    static CALL_QUEUES: SpinLock<CallQueue> = SpinLock::new(CallQueue::new());
+    static LAST_COMPLETED_CALL: AtomicU64 = AtomicU64::new(0);
+    static RETRY_IPI_DELIVERY: AtomicBool = AtomicBool::new(false);
+}
+
+fn enqueue_and_signal(
+    queue: &SpinLock<CallQueue>,
+    call: IpiCall,
+    signal: impl FnOnce() -> Result<()>,
+) -> Result<()> {
+    let sequence = {
+        let mut queue = queue.lock();
+        if queue.calls.len() >= MAX_PENDING_CALLS {
+            return Err(crate::Error::NotEnoughResources);
+        }
+        queue.push(call)
+    };
+
+    if let Err(error) = signal() {
+        let cancelled = {
+            let mut queue = queue.lock();
+            queue
+                .calls
+                .binary_search_by_key(&sequence, |call| call.sequence)
+                .ok()
+                .and_then(|index| queue.calls.remove(index))
+        };
+        if cancelled.is_some() {
+            return Err(error);
+        }
+        // The receiver already claimed this call, possibly on an earlier IPI.
+    }
+    Ok(())
 }
 
 /// Handles inter-processor calls.
@@ -157,22 +294,52 @@ cpu_local! {
 /// This function must be called from an IRQ handler that can be triggered by
 /// inter-processor interrupts.
 pub(crate) unsafe fn do_inter_processor_call(_trapframe: &TrapFrame) {
-    // No races because we are in IRQs.
-    let this_cpu_id = crate::cpu::CpuId::current_racy();
+    let irq_guard = irq::disable_local();
+    drain_calls_on_current_cpu(&irq_guard);
+}
 
-    let mut queue = CALL_QUEUES.get_on_cpu(this_cpu_id).lock();
-    while let Some(call_fn) = queue.pop_front() {
-        crate::debug!(
-            "Performing inter-processor call to {:#?} on CPU {:#?}",
-            call_fn,
-            this_cpu_id,
-        );
-        call_fn();
+pub(crate) fn retry_pending_ipi(irq_guard: &DisabledLocalIrqGuard) {
+    if RETRY_IPI_DELIVERY
+        .get_on_cpu(irq_guard.current_cpu())
+        .load(Ordering::Relaxed)
+    {
+        drain_calls_on_current_cpu(irq_guard);
     }
-    // Clear the pending flag before dropping the lock to avoid races.
-    HAS_PENDING_IPIS
-        .get_on_cpu(this_cpu_id)
-        .store(false, Ordering::Release);
+}
+
+fn drain_calls_on_current_cpu(irq_guard: &DisabledLocalIrqGuard) {
+    let cpu = irq_guard.current_cpu();
+    let needs_followup = handle_ipi_batch(
+        CALL_QUEUES.get_on_cpu(cpu),
+        LAST_COMPLETED_CALL.get_on_cpu(cpu),
+    );
+    // Rearm after a bounded batch even if several incoming IPIs coalesced.
+    // The next local timer interrupt can drain another batch if rearming fails.
+    let retry = needs_followup && IPI_SENDER.get().unwrap().send(cpu, irq_guard).is_err();
+    RETRY_IPI_DELIVERY
+        .get_on_cpu(cpu)
+        .store(retry, Ordering::Relaxed);
+}
+
+fn handle_ipi_batch(queue: &SpinLock<CallQueue>, completed: &AtomicU64) -> bool {
+    // Both the IPI and timer fallback run with local IRQs disabled, so only
+    // one consumer can execute at a time. Defer calls added after entry.
+    let last_at_entry = queue.lock().last_sequence;
+    for _ in 0..CALLS_PER_INTERRUPT {
+        let Some(QueuedCall { sequence, call }) = queue
+            .lock()
+            .calls
+            .pop_front_if(|pending| pending.sequence <= last_at_entry)
+        else {
+            break;
+        };
+        match call {
+            IpiCall::Function(call_fn) => call_fn(),
+            IpiCall::Closure(call_fn) => call_fn(),
+        }
+        completed.store(sequence, Ordering::Release);
+    }
+    !queue.lock().calls.is_empty()
 }
 
 pub(super) fn init() {
@@ -186,6 +353,10 @@ pub(super) fn init() {
 mod test {
     use core::sync::atomic::{AtomicUsize, Ordering};
 
+    use super::{
+        Arc, AtomicU64, Box, CALLS_PER_INTERRUPT, CallQueue, IpiCall, SpinLock, enqueue_and_signal,
+        handle_ipi_batch,
+    };
     use crate::{
         cpu::{self, PinCurrentCpu},
         prelude::ktest,
@@ -260,5 +431,95 @@ mod test {
         pending_ipis.wait();
 
         assert_eq!(IPI_CALL_COUNT.load(Ordering::Relaxed) - before, 2);
+    }
+
+    #[ktest]
+    fn ipi_handler_defers_new_calls_and_publishes_completed_sequence() {
+        let queue = Arc::new(SpinLock::new(CallQueue::new()));
+        let completed = AtomicU64::new(0);
+        let producer = queue.clone();
+        let sequence = queue.lock().push(IpiCall::Closure(Box::new(move || {
+            producer.lock().push(IpiCall::Function(|| {}));
+        })));
+
+        assert!(handle_ipi_batch(&queue, &completed));
+        assert_eq!(queue.lock().calls.len(), 1);
+        assert_eq!(completed.load(Ordering::Acquire), sequence);
+
+        assert!(!handle_ipi_batch(&queue, &completed));
+        assert_eq!(completed.load(Ordering::Acquire), sequence + 1);
+    }
+
+    #[ktest]
+    fn ipi_handler_limits_legacy_batch() {
+        let queue = SpinLock::new(CallQueue::new());
+        let completed = AtomicU64::new(0);
+        for _ in 0..=CALLS_PER_INTERRUPT {
+            queue.lock().push(IpiCall::Function(|| {}));
+        }
+
+        assert!(handle_ipi_batch(&queue, &completed));
+        assert_eq!(
+            completed.load(Ordering::Acquire),
+            CALLS_PER_INTERRUPT as u64
+        );
+        assert!(!handle_ipi_batch(&queue, &completed));
+        assert_eq!(
+            completed.load(Ordering::Acquire),
+            CALLS_PER_INTERRUPT as u64 + 1
+        );
+    }
+
+    #[ktest]
+    fn ipi_rearms_a_coalesced_batch() {
+        if cpu::num_cpus() < 2 {
+            return;
+        }
+        let irq_guard = crate::irq::disable_local();
+        let target = cpu::all_cpus()
+            .find(|cpu_id| *cpu_id != irq_guard.current_cpu())
+            .unwrap();
+        let before = IPI_CALL_COUNT.load(Ordering::Relaxed);
+        let count = CALLS_PER_INTERRUPT * 2 + 1;
+        let sequence = {
+            let mut queue = super::CALL_QUEUES.get_on_cpu(target).lock();
+            for _ in 0..count {
+                queue.push(IpiCall::Function(count_ipi_call));
+            }
+            queue.last_sequence
+        };
+        super::IPI_SENDER
+            .get()
+            .unwrap()
+            .send(target, &irq_guard)
+            .unwrap();
+        drop(irq_guard);
+
+        let deadline = crate::timer::Jiffies::elapsed().as_u64() + crate::timer::TIMER_FREQ;
+        let completed = super::LAST_COMPLETED_CALL.get_on_cpu(target);
+        while completed.load(Ordering::Acquire) < sequence {
+            assert!(crate::timer::Jiffies::elapsed().as_u64() < deadline);
+            core::hint::spin_loop();
+        }
+        assert_eq!(IPI_CALL_COUNT.load(Ordering::Relaxed) - before, count);
+    }
+
+    #[ktest]
+    fn failed_ipi_cancels_only_unclaimed_calls() {
+        let queue = SpinLock::new(CallQueue::new());
+        let completed = AtomicU64::new(0);
+        let failed = || Err(crate::Error::IoError);
+
+        assert!(enqueue_and_signal(&queue, IpiCall::Function(|| {}), failed).is_err());
+        assert!(queue.lock().calls.is_empty());
+
+        assert!(
+            enqueue_and_signal(&queue, IpiCall::Function(|| {}), || {
+                assert!(!handle_ipi_batch(&queue, &completed));
+                failed()
+            })
+            .is_ok()
+        );
+        assert_eq!(completed.load(Ordering::Acquire), 2);
     }
 }

@@ -9,40 +9,32 @@ use crate::arch::boot::DEVICE_TREE;
 
 /// Detects available RISC-V ISA extensions.
 pub(in crate::arch) fn init() {
-    let mut global_isa_extensions = IsaExtensions::all();
-
     let device_tree = DEVICE_TREE.get().expect("Device tree not initialized");
-    let mut cpu_count = 0;
-
-    for cpu in device_tree.cpus() {
-        // FIXME: We should find a robust method to identify the management
-        // harts. Here we simply skip those harts without MMU, which is supposed
-        // to work in most cases.
-        if cpu.property("mmu-type").is_none() {
-            continue;
-        }
-
-        cpu_count += 1;
-
-        let cpu_isa_extensions = if let Some(isa_extensions) = cpu.property("riscv,isa-extensions")
-        {
-            parse_isa_extensions_list(&isa_extensions)
-        } else if let Some(isa) = cpu.property("riscv,isa") {
-            parse_isa_string(&isa)
-        } else {
-            crate::error!(
-                "CPU {} has no riscv,isa or riscv,isa-extensions property",
-                cpu_count - 1
-            );
-            continue;
-        };
-
-        global_isa_extensions &= cpu_isa_extensions;
-    }
-
+    let harts = device_tree
+        .cpus()
+        // Management harts without an MMU do not run the kernel.
+        .filter(|cpu| cpu.property("mmu-type").is_some())
+        .enumerate()
+        .map(|(index, cpu)| {
+            if let Some(isa_extensions) = cpu.property("riscv,isa-extensions") {
+                parse_isa_extensions_list(&isa_extensions)
+            } else if let Some(isa) = cpu.property("riscv,isa") {
+                parse_isa_string(&isa)
+            } else {
+                crate::error!("CPU {index} has no riscv,isa or riscv,isa-extensions property");
+                IsaExtensions::empty()
+            }
+        });
+    let global_isa_extensions = shared_isa_extensions(harts);
     crate::info!("Detected ISA extensions: {:?}", global_isa_extensions);
 
     GLOBAL_ISA_EXTENSIONS.call_once(|| global_isa_extensions);
+}
+
+fn shared_isa_extensions(harts: impl Iterator<Item = IsaExtensions>) -> IsaExtensions {
+    harts
+        .reduce(|shared, hart| shared & hart)
+        .unwrap_or_else(IsaExtensions::empty)
 }
 
 /// Checks if the specified set of ISA extensions are available.
@@ -361,6 +353,15 @@ mod tests {
         // Only empty strings
         let result = parse_isa_extensions_list_wrapper(&["", "", ""]);
         assert!(result.is_empty());
+    }
+
+    #[ktest]
+    fn missing_hart_metadata_does_not_advertise_extensions() {
+        assert!(shared_isa_extensions(core::iter::empty()).is_empty());
+        assert!(
+            shared_isa_extensions([IsaExtensions::all(), IsaExtensions::empty()].into_iter())
+                .is_empty()
+        );
     }
 
     #[ktest]

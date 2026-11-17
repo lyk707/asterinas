@@ -107,6 +107,20 @@ pub(in crate::arch) fn get_or_init(_guard: &dyn PinCurrentCpu) -> &(dyn Apic + '
     &**unsafe { apic.get() }
 }
 
+// Only errors attributable to submitting a command through the ICR.
+// Receive-side errors can be recorded while an unrelated IPI is being sent.
+const ESR_SEND_ILLEGAL_VECTOR: u32 = 1 << 5;
+const ESR_REDIRECTABLE_IPI: u32 = 1 << 4;
+const ESR_XAPIC_SEND_CHECKSUM_OR_ACCEPT: u32 = (1 << 0) | (1 << 2);
+
+fn x2apic_send_failed(errors: u32) -> bool {
+    errors & (ESR_SEND_ILLEGAL_VECTOR | ESR_REDIRECTABLE_IPI) != 0
+}
+
+fn xapic_send_failed(errors: u32) -> bool {
+    x2apic_send_failed(errors) || errors & ESR_XAPIC_SEND_CHECKSUM_OR_ACCEPT != 0
+}
+
 pub(in crate::arch) trait Apic: ApicTimer {
     fn id(&self) -> u32;
 
@@ -115,8 +129,14 @@ pub(in crate::arch) trait Apic: ApicTimer {
     /// End of Interrupt, this function will inform APIC that this interrupt has been processed.
     fn eoi(&self);
 
-    /// Send a general inter-processor interrupt.
-    unsafe fn send_ipi(&self, icr: Icr);
+    /// Sends the interrupt described by `icr`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must provide a command valid for the local APIC and the addressed CPUs.
+    /// In particular, the caller must ensure that INIT and STARTUP commands are safe
+    /// for every addressed CPU.
+    unsafe fn send_ipi(&self, icr: Icr) -> crate::Result<()>;
 }
 
 pub(in crate::arch) trait ApicTimer {
@@ -368,5 +388,50 @@ pub(in crate::arch) fn init(io_mem_builder: &IoMemAllocatorBuilder) -> Result<()
     } else {
         crate::warn!("Neither x2APIC nor xAPIC found!");
         Err(ApicInitError::NoApic)
+    }
+}
+
+fn wait_for_ipi_delivery(mut status: impl FnMut() -> (bool, bool)) -> crate::Result<()> {
+    const MAX_POLLS: usize = 100_000;
+    for _ in 0..MAX_POLLS {
+        let (pending, failed) = status();
+        if failed {
+            return Err(crate::Error::IoError);
+        }
+        if !pending {
+            return Ok(());
+        }
+        core::hint::spin_loop();
+    }
+    Err(crate::Error::IoError)
+}
+
+#[cfg(ktest)]
+mod tests {
+    use crate::prelude::*;
+
+    #[ktest]
+    fn apic_send_checks_only_outbound_errors() {
+        let receive_errors = (1 << 1) | (1 << 3) | (1 << 6);
+        assert!(!super::xapic_send_failed(receive_errors));
+        assert!(!super::x2apic_send_failed(receive_errors));
+        assert!(super::xapic_send_failed(receive_errors | (1 << 2)));
+        assert!(!super::x2apic_send_failed(1 << 2));
+        assert!(super::x2apic_send_failed(receive_errors | (1 << 5)));
+    }
+
+    #[ktest]
+    fn xapic_delivery_reports_errors_even_when_idle() {
+        assert!(super::wait_for_ipi_delivery(|| (false, true)).is_err());
+        assert!(super::wait_for_ipi_delivery(|| (true, false)).is_err());
+        let mut attempts = 0;
+        assert!(
+            super::wait_for_ipi_delivery(|| {
+                attempts += 1;
+                (attempts == 1, false)
+            })
+            .is_ok()
+        );
+        assert_eq!(attempts, 2);
     }
 }

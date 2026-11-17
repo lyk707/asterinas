@@ -80,13 +80,20 @@ impl super::Apic for XApic {
         unsafe { self.io_mem.write_once(xapic::XAPIC_EOI as usize, &0u32) };
     }
 
-    unsafe fn send_ipi(&self, icr: super::Icr) {
+    unsafe fn send_ipi(&self, icr: super::Icr) -> crate::Result<()> {
         let _guard = crate::irq::disable_local();
 
         // SAFETY: These operations write the interrupt command to APIC and wait for results. The
         // caller guarantees it's safe to execute this interrupt command.
         unsafe {
+            // A previous send can time out while the command is still pending.
+            // Wait before writing either half of the ICR.
+            super::wait_for_ipi_delivery(|| {
+                let icr = self.io_mem.read_once::<u32>(xapic::XAPIC_ICR0 as usize);
+                (icr & (1 << 12) != 0, false)
+            })?;
             self.io_mem.write_once(xapic::XAPIC_ESR as usize, &0u32);
+            self.io_mem.read_once::<u32>(xapic::XAPIC_ESR as usize);
             // The upper 32 bits of ICR must be written into XAPIC_ICR1 first,
             // because writing into XAPIC_ICR0 will trigger the action of
             // interrupt sending.
@@ -94,15 +101,12 @@ impl super::Apic for XApic {
                 .write_once(xapic::XAPIC_ICR1 as usize, &icr.upper());
             self.io_mem
                 .write_once(xapic::XAPIC_ICR0 as usize, &icr.lower());
-            loop {
+            super::wait_for_ipi_delivery(|| {
                 let icr = self.io_mem.read_once::<u32>(xapic::XAPIC_ICR0 as usize);
-                if ((icr >> 12) & 0x1) == 0 {
-                    break;
-                }
-                if self.io_mem.read_once::<u32>(xapic::XAPIC_ESR as usize) > 0 {
-                    break;
-                }
-            }
+                self.io_mem.write_once(xapic::XAPIC_ESR as usize, &0u32);
+                let errors = self.io_mem.read_once::<u32>(xapic::XAPIC_ESR as usize);
+                (icr & (1 << 12) != 0, super::xapic_send_failed(errors))
+            })
         }
     }
 }

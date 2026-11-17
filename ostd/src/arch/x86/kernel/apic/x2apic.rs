@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+use core::arch::asm;
+
 use x86::msr::{
     IA32_APIC_BASE, IA32_X2APIC_APICID, IA32_X2APIC_CUR_COUNT, IA32_X2APIC_DIV_CONF,
     IA32_X2APIC_EOI, IA32_X2APIC_ESR, IA32_X2APIC_ICR, IA32_X2APIC_INIT_COUNT,
@@ -73,24 +75,24 @@ impl super::Apic for X2Apic {
         unsafe { wrmsr(IA32_X2APIC_EOI, 0) };
     }
 
-    unsafe fn send_ipi(&self, icr: super::Icr) {
+    unsafe fn send_ipi(&self, icr: super::Icr) -> crate::Result<()> {
         let _guard = crate::irq::disable_local();
 
         // SAFETY: These operations write the interrupt command to APIC and wait for results. The
         // caller guarantees it's safe to execute this interrupt command.
         unsafe {
             wrmsr(IA32_X2APIC_ESR, 0);
+            rdmsr(IA32_X2APIC_ESR);
+            // x2APIC WRMSR can otherwise notify the target before queued work
+            // becomes visible. Intel SDM Vol. 3A, "MSR Access in x2APIC Mode".
+            asm!("mfence", "lfence", options(nostack, preserves_flags));
             wrmsr(IA32_X2APIC_ICR, icr.0);
-            loop {
-                let icr = rdmsr(IA32_X2APIC_ICR);
-                if ((icr >> 12) & 0x1) == 0 {
-                    break;
-                }
-                if rdmsr(IA32_X2APIC_ESR) > 0 {
-                    break;
-                }
+            wrmsr(IA32_X2APIC_ESR, 0);
+            if super::x2apic_send_failed(rdmsr(IA32_X2APIC_ESR) as u32) {
+                return Err(crate::Error::IoError);
             }
         }
+        Ok(())
     }
 }
 

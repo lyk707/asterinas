@@ -49,6 +49,8 @@ pub(crate) fn call_timer_callback_functions(_: &TrapFrame) {
         jiffies::ELAPSED.fetch_add(1, Ordering::Relaxed);
     }
 
+    crate::smp::retry_pending_ipi(&irq_guard);
+
     let callbacks_guard = INTERRUPT_CALLBACKS.get_with(&irq_guard);
     for callback in callbacks_guard.borrow().iter() {
         (callback)();

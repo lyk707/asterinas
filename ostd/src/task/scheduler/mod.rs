@@ -68,11 +68,14 @@
 mod fifo_scheduler;
 pub mod info;
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use spin::Once;
 
 use super::{Task, preempt::cpu_local, processor};
 use crate::{
     cpu::{CpuId, CpuSet, PinCurrentCpu},
+    cpu_local,
     prelude::*,
     task::disable_preempt,
     timer,
@@ -511,11 +514,21 @@ fn set_need_preempt(cpu_id: CpuId) {
 
     if preempt_guard.current_cpu() == cpu_id {
         cpu_local::set_need_preempt();
-    } else {
+    } else if !REMOTE_PREEMPT_PENDING
+        .get_on_cpu(cpu_id)
+        .swap(true, Ordering::AcqRel)
+    {
         crate::smp::inter_processor_call(&CpuSet::from(cpu_id), || {
+            REMOTE_PREEMPT_PENDING
+                .get_on_cpu(CpuId::current_racy())
+                .store(false, Ordering::Release);
             cpu_local::set_need_preempt();
         });
     }
+}
+
+cpu_local! {
+    static REMOTE_PREEMPT_PENDING: AtomicBool = AtomicBool::new(false);
 }
 
 /// Dequeues the current task from its runqueue.
