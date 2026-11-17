@@ -198,8 +198,7 @@ Notice how SCML denotes an array with the `[ <struct_rule> ]` syntax.
 Bitflags-based matching rules described above are expressive enough to
 capture most patterns of interesting system call arguments.
 But some system call arguments cannot be characterized with bitflags.
-To address such cases, SCML introduces two special built-in matching rules:
-`<PATH>` and `<INTEGER>`
+SCML provides `<PATH>`, `<INTEGER>`, and `<NONNEGATIVE_INTEGER>` for these cases.
 
 #### The file path matching rule
 
@@ -231,6 +230,8 @@ The `<INTEGER>` matching rule can match any integer system call argument
 such as `1234`, `-100`, `0xdeadbeef`, and `0o666`.
 It can be used as a fallback rule
 when a system call takes an argument of either bitflags or integer.
+Use `<NONNEGATIVE_INTEGER>` to match nonnegative decimal or hexadecimal arguments.
+A negative decimal literal such as `group_fd = -1` matches that specific value.
 
 ```c
 timer_create(

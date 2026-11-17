@@ -6,6 +6,8 @@ mod event_file;
 mod events;
 mod io_events;
 mod observer;
+#[cfg(feature = "pmu")]
+pub(crate) mod perf;
 mod subject;
 
 pub use self::io_events::IoEvents;

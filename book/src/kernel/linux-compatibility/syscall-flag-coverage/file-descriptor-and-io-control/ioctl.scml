@@ -53,3 +53,8 @@ ioctl(fd, op = TDX_CMD_GET_REPORT0, ..);
 
 // Control socket and network interface settings
 ioctl(fd, op = <socket_ops>, ..);
+
+// Control perf counting events without group flags.
+ioctl(fd, op = PERF_EVENT_IOC_ENABLE | PERF_EVENT_IOC_DISABLE | PERF_EVENT_IOC_RESET, arg = 0);
+// strace decodes the u64 output through the pointer as a one-element array.
+ioctl(fd, op = PERF_EVENT_IOC_ID, arg = [<NONNEGATIVE_INTEGER>]);

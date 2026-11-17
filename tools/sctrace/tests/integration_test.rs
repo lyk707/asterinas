@@ -334,3 +334,59 @@ fn test_heterogeneous_arrays() {
     let result = sctrace.run().unwrap().unwrap();
     assert_eq!(result.len(), 0);
 }
+
+fn assert_trace_matches(scml: &str, trace: &str, supported: bool) {
+    let reports = SctraceBuilder::new()
+        .patterns(Patterns::from_scml(scml).unwrap())
+        .strace(StraceLogStream::from_string(trace).unwrap())
+        .reporter(CliReporterBuilder::new().quiet().collect().build())
+        .build()
+        .run()
+        .unwrap()
+        .unwrap();
+
+    if supported {
+        assert!(reports.is_empty(), "{trace}: {reports:?}");
+    } else {
+        assert_eq!(reports, [format!("Unsupported syscall: {trace}")]);
+    }
+}
+
+#[test]
+fn test_integer_constraints() {
+    let scml = "poll(fds, nfds = <NONNEGATIVE_INTEGER>, timeout = -1);";
+    for (trace, supported) in [
+        ("poll([], 0, -1) = 0", true),
+        ("poll([], 0x1, -1) = 0", true),
+        ("poll([], -1, -1) = -1 EINVAL (Invalid argument)", false),
+        ("poll([], 0, -2) = 0", false),
+    ] {
+        assert_trace_matches(scml, trace, supported);
+    }
+}
+
+#[test]
+fn test_mixed_flag_masks() {
+    let trace = "openat(AT_FDCWD, \"file\", O_RDONLY|0x40) = 3";
+    assert_trace_matches("openat(dirfd, path, flags = O_RDONLY);", trace, false);
+    assert_trace_matches(
+        "openat(dirfd, path, flags = O_RDONLY | <INTEGER>);",
+        trace,
+        true,
+    );
+}
+
+#[test]
+fn test_nonnegative_integer_in_a_flag_mask() {
+    for scml in [
+        "openat(dirfd, path, flags = O_RDONLY | <NONNEGATIVE_INTEGER>);",
+        "openat(dirfd, path, flags = <NONNEGATIVE_INTEGER> | O_RDONLY);",
+    ] {
+        for mask in ["0x40", "O_RDONLY|0x40", "0x40|O_RDONLY"] {
+            let trace = format!("openat(AT_FDCWD, \"file\", {mask}) = 3");
+            assert_trace_matches(scml, &trace, true);
+        }
+        assert_trace_matches(scml, "openat(AT_FDCWD, \"file\", O_RDONLY|-1) = 3", false);
+    }
+    assert!(Patterns::from_scml("openat(dirfd, path, flags = O_RDONLY | <PATH>);").is_err());
+}

@@ -21,6 +21,7 @@
 #  - VIRTIOFS_SCRATCH_TAG: mount tag for the scratch virtio-fs device;
 #  - INITRAMFS: "on" or "off"; when "off", attach `rootfs.img` as an extra block device.
 #  - CONSOLE: "hvc0" to enable virtio console;
+#  - PMU_QEMU_CPU: optional CPU model/properties for normal x86 and RISC-V;
 #  - SMP: number of CPUs;
 #  - MEM: amount of memory, e.g. "8G";
 #  - VNC_PORT: VNC display number, default is "42" (TCP port 5942),
@@ -113,6 +114,10 @@ VIRTIOFS_SOCKET="$VIRTIOFS_WORK_DIR/vfs.sock"
 VIRTIOFS_SCRATCH_SOCKET="$VIRTIOFS_WORK_DIR/scratch/vfs.sock"
 
 if [ "$1" = "riscv" ]; then
+    RISCV_PMU_ARGS=
+    if [ "${PMU_RISCV_ICOUNT:-0}" = 1 ]; then
+        RISCV_PMU_ARGS="-accel tcg,thread=single -icount shift=0"
+    fi
     # NOTE: The initramfs assumes that ext2.img, exfat.img, and ltp_dev.img appear as
     # `/dev/vda`, `/dev/vdb`, and `/dev/vdc`, respectively. RISC-V virtio-mmio
     # block devices are discovered in reverse command-line order, so list them
@@ -125,7 +130,8 @@ if [ "$1" = "riscv" ]; then
     fi
 
     QEMU_ARGS="\
-        -cpu rv64,svpbmt=true,zkr=true \
+        -cpu ${PMU_QEMU_CPU:-rv64,svpbmt=true,zkr=true} \
+        $RISCV_PMU_ARGS \
         -machine virt \
         -m ${MEM:-8G} \
         -smp ${SMP:-1} \
@@ -223,7 +229,7 @@ if [ "$1" = "tdx" ]; then
 fi
 
 COMMON_QEMU_ARGS="\
-    -cpu Icelake-Server,+x2apic,+vmx \
+    -cpu ${PMU_QEMU_CPU:-Icelake-Server,+x2apic,+vmx} \
     -smp ${SMP:-1} \
     -m ${MEM:-8G} \
     --no-reboot \

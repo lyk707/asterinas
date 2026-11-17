@@ -1,0 +1,68 @@
+name: Test PMU
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  pmu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: asterinas/kernel-dev:0.19.0-20261012
+    env:
+      RUSTUP_HOME: /root/.rustup
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run host regressions
+        run: bash tools/pmu/check.sh host
+      - name: Check perf_event_open SCML
+        run: bash tools/pmu/check.sh scml
+      - name: Install OSDK
+        run: make install_osdk
+      - name: Lint PMU for x86-64 and RISC-V
+        run: bash tools/pmu/check.sh lint
+
+  pmu-guest:
+    if: github.ref == 'refs/heads/main' && github.ref_protected &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    # See tools/pmu/README.md for the runner-side workflow restriction.
+    runs-on:
+      group: pmu-isolated
+      labels: pmu
+    timeout-minutes: 45
+    container:
+      image: asterinas/kernel-dev:0.19.0-20261012
+      options: --device=/dev/kvm
+    env:
+      RUSTUP_HOME: /root/.rustup
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install OSDK
+        run: make install_osdk
+      - name: Run PMU guest acceptance
+        shell: bash
+        run: |
+          status=0
+          bash tools/pmu/check.sh guest || status=$?
+          if [[ $status == 77 ]]; then
+            echo "::error::PMU guest acceptance incomplete; see the run log for the skipped checks."
+          fi
+          exit "$status"
+      - name: Upload guest console log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmu-guest-console
+          path: qemu.log
+          if-no-files-found: ignore

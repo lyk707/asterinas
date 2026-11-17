@@ -6,8 +6,8 @@ use nom::{
     IResult,
     branch::alt,
     bytes::complete::{tag, take_while},
-    character::complete::{char, multispace0},
-    combinator::{opt, recognize},
+    character::complete::{char, digit1, multispace0},
+    combinator::{opt, recognize, verify},
     multi::{separated_list0, separated_list1},
     sequence::{delimited, pair, preceded},
 };
@@ -181,6 +181,12 @@ pub(crate) enum PatternArg<'a> {
     /// Matches integer arguments.
     Integer,
 
+    /// Matches nonnegative decimal or hexadecimal integers.
+    NonnegativeInteger,
+
+    /// Matches a specific negative decimal integer.
+    NegativeLiteral(&'a str),
+
     /// Matches path arguments.
     Path,
 
@@ -253,11 +259,14 @@ impl<'a> PatternFlagSet<'a> {
         // Validate that all elements are either Flag or Integer types
         for flag in &flags {
             match flag {
-                PatternArg::Flag(_) | PatternArg::Integer | PatternArg::FlagsVariable(_) => {
+                PatternArg::Flag(_)
+                | PatternArg::Integer
+                | PatternArg::NonnegativeInteger
+                | PatternArg::FlagsVariable(_) => {
                     // Valid flag type
                 }
                 _ => {
-                    panic!("PatternFlagSet can only contain Flag or Integer types");
+                    panic!("unsupported flag pattern component");
                 }
             }
         }
@@ -584,8 +593,16 @@ impl<'a> Pattern<'a> {
         alt((
             |i| Self::parse_struct(ctx, i),
             |i| Self::parse_array(ctx, i),
+            Self::parse_negative_literal,
+            |i| {
+                let (i, flags) = Self::parse_flags(ctx, i)?;
+                let arg = match flags.flags().as_slice() {
+                    [arg @ (PatternArg::Integer | PatternArg::NonnegativeInteger)] => arg.clone(),
+                    _ => PatternArg::Flags(flags),
+                };
+                Ok((i, arg))
+            },
             Self::parse_builtin_type,
-            |i| Self::parse_flags(ctx, i),
             |i| Self::parse_struct_variable(ctx, i),
             |i| Self::parse_flags_variable(ctx, i),
         ))(input)
@@ -658,15 +675,22 @@ impl<'a> Pattern<'a> {
         Ok((input, PatternArg::Array(PatternArray::new(elements))))
     }
 
-    fn parse_flags(ctx: &ParserCtxBuilder<'a>, input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
+    fn parse_flags(
+        ctx: &ParserCtxBuilder<'a>,
+        input: &'a str,
+    ) -> IResult<&'a str, PatternFlagSet<'a>> {
         let (input, flags) = separated_list1(
             delimited(multispace0, char('|'), multispace0),
-            alt((Self::parse_builtin_type, Self::parse_flag, |i| {
-                Self::parse_flags_variable(ctx, i)
-            })),
+            alt((
+                verify(Self::parse_builtin_type, |arg| {
+                    matches!(arg, PatternArg::Integer | PatternArg::NonnegativeInteger)
+                }),
+                Self::parse_flag,
+                |i| Self::parse_flags_variable(ctx, i),
+            )),
         )(input)?;
 
-        Ok((input, PatternArg::Flags(PatternFlagSet::new(flags))))
+        Ok((input, PatternFlagSet::new(flags)))
     }
 
     fn parse_builtin_type(input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
@@ -677,12 +701,18 @@ impl<'a> Pattern<'a> {
 
         match type_name {
             "INTEGER" => Ok((input, PatternArg::Integer)),
+            "NONNEGATIVE_INTEGER" => Ok((input, PatternArg::NonnegativeInteger)),
             "PATH" => Ok((input, PatternArg::Path)),
             _ => Err(nom::Err::Error(nom::error::Error::new(
                 input,
                 nom::error::ErrorKind::Tag,
             ))),
         }
+    }
+
+    fn parse_negative_literal(input: &'a str) -> IResult<&'a str, PatternArg<'a>> {
+        let (input, literal) = recognize(pair(char('-'), digit1))(input)?;
+        Ok((input, PatternArg::NegativeLiteral(literal)))
     }
 
     fn parse_flags_variable(
@@ -747,7 +777,7 @@ impl<'a> Pattern<'a> {
         let (input, _) = multispace0(input)?;
         let (input, _) = char(';')(input)?;
 
-        Ok((input, (name, flags)))
+        Ok((input, (name, PatternArg::Flags(flags))))
     }
 
     fn parse_struct_definition(

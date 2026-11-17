@@ -49,3 +49,6 @@ distro/etc_nixos/_config_for_test.nix
 
 # RustRover
 .idea
+
+# Manually built perf for the RISC-V initramfs.
+/test/initramfs/nix/perf-riscv64/perf

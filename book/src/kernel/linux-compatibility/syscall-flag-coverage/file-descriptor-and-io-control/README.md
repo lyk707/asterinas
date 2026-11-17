@@ -138,6 +138,9 @@ see [the man page](https://man7.org/linux/man-pages/man2/poll.2.html).
 
 ### `ioctl`
 
+See [`perf_event_open`](../system-information-and-misc/README.md#perf_event_open)
+for the restrictions on performance event ioctls.
+
 Supported functionality in SCML:
 
 ```c

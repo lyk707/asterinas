@@ -104,6 +104,11 @@ mod munmap;
 mod nanosleep;
 mod open;
 mod pause;
+#[cfg(feature = "pmu")]
+mod perf_event_open;
+#[cfg(not(feature = "pmu"))]
+#[path = "perf_event_open_disabled.rs"]
+mod perf_event_open;
 mod personality;
 mod pidfd_getfd;
 mod pidfd_open;

@@ -85,6 +85,7 @@ macro_rules! import_generic_syscall_entries {
             munmap::sys_munmap,
             nanosleep::{sys_clock_nanosleep, sys_nanosleep},
             open::sys_openat,
+            perf_event_open::sys_perf_event_open,
             personality::sys_personality,
             pidfd_getfd::sys_pidfd_getfd,
             pidfd_open::sys_pidfd_open,
@@ -388,6 +389,7 @@ macro_rules! define_syscalls_with_generic_syscall_table {
             SYS_MPROTECT = 226               => sys_mprotect(args[..3]);
             SYS_MSYNC = 227                  => sys_msync(args[..3]);
             SYS_MADVISE = 233                => sys_madvise(args[..3]);
+            SYS_PERF_EVENT_OPEN = 241        => sys_perf_event_open(args[..5]);
             SYS_ACCEPT4 = 242                => sys_accept4(args[..4]);
             SYS_WAIT4 = 260                  => sys_wait4(args[..4]);
             SYS_PRLIMIT64 = 261              => sys_prlimit64(args[..4]);

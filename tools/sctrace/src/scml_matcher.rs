@@ -58,6 +58,16 @@ impl<'a> Matcher<'a> {
 
             // Type constraint - matches only integer arguments
             PatternArg::Integer => matches!(syscall_arg, SyscallArg::Integer(_)),
+            PatternArg::NonnegativeInteger => match syscall_arg {
+                SyscallArg::Integer(value) => match value.strip_prefix("0x") {
+                    Some(hex) => u64::from_str_radix(hex, 16).is_ok(),
+                    None => value.parse::<u64>().is_ok(),
+                },
+                _ => false,
+            },
+            PatternArg::NegativeLiteral(expected) => {
+                matches!(syscall_arg, SyscallArg::Integer(value) if value == expected)
+            }
 
             // Path matching not yet implemented
             PatternArg::Path => todo!("Path matching not implemented yet"),
@@ -66,6 +76,7 @@ impl<'a> Matcher<'a> {
             PatternArg::Flags(pattern_flags) => match syscall_arg {
                 // Special case: integer zero matches any flag pattern
                 SyscallArg::Integer(value) if *value == "0" => true,
+                SyscallArg::Integer(_) => Self::matches_flag(ctx, syscall_arg, pattern_flags),
                 // Validate that all syscall flags are present in pattern
                 SyscallArg::Flags(syscall_flags) => {
                     Self::matches_flags(ctx, syscall_flags, pattern_flags)
@@ -156,13 +167,6 @@ impl<'a> Matcher<'a> {
         syscall_flag: &SyscallArg,
         pattern_flags: &PatternFlagSet,
     ) -> bool {
-        match syscall_flag {
-            SyscallArg::Flag(_) => (),
-            _ => {
-                panic!("Syscall flag must be of type Flag for flag matching");
-            }
-        };
-
         let mut found_match = false;
 
         for pattern_flag in pattern_flags.flags() {
@@ -176,9 +180,11 @@ impl<'a> Matcher<'a> {
                 }
 
                 // Integer flag matching - pattern accepts any integer
-                (SyscallArg::Integer(_), PatternArg::Integer) => {
-                    found_match = true;
-                    break;
+                (SyscallArg::Integer(_), PatternArg::Integer | PatternArg::NonnegativeInteger) => {
+                    if Self::matches_arg(ctx, syscall_flag, pattern_flag) {
+                        found_match = true;
+                        break;
+                    }
                 }
 
                 // Flags variable - expand and attempt matching

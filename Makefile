@@ -22,6 +22,7 @@ NO_DEFAULT_FEATURES ?= 0
 COVERAGE ?= 0
 INITRAMFS ?= on
 CMDLINE ?=
+export PMU_RISCV_ICOUNT ?= 0
 
 # Specify the primary system console (supported: tty0, ttyS0, hvc0).
 # - tty0: The active virtual terminal (VT).
@@ -138,6 +139,12 @@ CARGO_OSDK_COMMON_ARGS :=
 CARGO_OSDK_BUILD_ARGS := --kcmd-args="loglevel=$(LOG_LEVEL)"
 CARGO_OSDK_BUILD_ARGS += --kcmd-args="earlycon"
 CARGO_OSDK_BUILD_ARGS += --kcmd-args="console=$(CONSOLE)"
+ifeq ($(TARGET_ARCH):$(PMU_RISCV_ICOUNT),riscv64:1)
+ifneq ($(ENABLE_KVM):$(SMP),0:1)
+$(error PMU_RISCV_ICOUNT=1 requires ENABLE_KVM=0 and SMP=1)
+endif
+CARGO_OSDK_BUILD_ARGS += --kcmd-args="ostd.riscv_pmu=icount"
+endif
 ifneq ($(strip $(CMDLINE)),)
 CARGO_OSDK_BUILD_ARGS += $(foreach arg,$(CMDLINE),--kcmd-args="$(arg)")
 endif
@@ -165,6 +172,9 @@ else ifeq ($(AUTO_TEST), regression)
 ENABLE_REGRESSION_TEST := true
 CARGO_OSDK_BUILD_ARGS += --kcmd-args="INTEL_TDX=$(INTEL_TDX)"
 CARGO_OSDK_BUILD_ARGS += --init-args="/test/run_regression_test.sh"
+else ifeq ($(AUTO_TEST), pmu)
+ENABLE_REGRESSION_TEST := true
+CARGO_OSDK_BUILD_ARGS += --init-args="/test/io/pmu/run_pmu_tests.sh"
 else ifeq ($(AUTO_TEST), boot)
 CARGO_OSDK_BUILD_ARGS += --init-args="/test/boot_hello.sh"
 else ifeq ($(AUTO_TEST), vsock)

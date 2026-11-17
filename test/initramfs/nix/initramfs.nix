@@ -6,6 +6,7 @@
   hostPlatform,
   writeClosure,
   busybox,
+  perf ? null,
   benchmark,
   conformance,
   regression,
@@ -29,6 +30,9 @@ let
   resolv_conf = pkgs.callPackage ./resolv_conf.nix { dnsServer = dnsServer; };
   # Whether the initramfs should include evtest, a common tool to debug input devices (`/dev/input/eventX`)
   is_evtest_included = false;
+  # Preserve the existing manual RISC-V perf injection path.
+  riscv_perf_dir = ./perf-riscv64;
+  has_riscv_perf = hostPlatform.isRiscV64 && builtins.pathExists (riscv_perf_dir + "/perf");
 
   all_pkgs = [
     busybox
@@ -38,7 +42,9 @@ let
   ++ lib.optionals (benchmark != null) [ benchmark.package ]
   ++ lib.optionals (conformance != null) [ conformance.package ]
   ++ lib.optionals (regression != null) [ regression.package ]
-  ++ lib.optionals is_evtest_included [ pkgs.evtest ];
+  ++ lib.optionals is_evtest_included [ pkgs.evtest ]
+  # `perf` comes from the same target package set as the guest regression tests.
+  ++ lib.optionals (perf != null) [ perf ];
 in
 stdenvNoCC.mkDerivation {
   name = "initramfs";
@@ -51,6 +57,12 @@ stdenvNoCC.mkDerivation {
     ln -sfn usr/lib $out/lib
     ln -sfn usr/lib64 $out/lib64
     cp -r ${busybox}/bin/* $out/bin/
+    ${lib.optionalString (perf != null) ''
+      cp -r ${perf}/bin/* $out/bin/
+    ''}
+    ${lib.optionalString has_riscv_perf ''
+      install -Dm755 ${riscv_perf_dir}/perf $out/bin/perf
+    ''}
     ${lib.optionalString is_evtest_included ''
       cp -r ${pkgs.evtest}/bin/* $out/bin/
     ''}
@@ -89,6 +101,10 @@ stdenvNoCC.mkDerivation {
     # including the packages themselves.
     # The output of `writeClosure` is equivalent to `nix-store -q --requisites`.
     mkdir -p $out/nix/store
+    ${lib.optionalString (perf != null) ''
+      # The perf wrapper refers to its original store path and hidden binary.
+      cp -r ${perf} $out/nix/store/
+    ''}
     pkg_path=${lib.strings.concatStringsSep ":" all_pkgs}
     while IFS= read -r dep_path; do
       if [[ "$pkg_path" == *"$dep_path"* ]]; then

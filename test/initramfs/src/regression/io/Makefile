@@ -4,5 +4,6 @@ SUBDIRS := \
 	epoll \
 	eventfd2 \
 	file_io \
+	pmu \
 
 include ../common/Makefile
