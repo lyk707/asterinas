@@ -57,7 +57,7 @@ x86_64.workspace = true
 bit_field.workspace = true
 fdt.workspace = true
 riscv.workspace = true
-sbi-rt.workspace = true
+sbi-rt = { workspace = true, features = ["integer-impls"] }
 unwinding = { workspace = true, features = ["fde-static"] }
 
 [target.loongarch64-unknown-none-softfloat.dependencies]

@@ -66,6 +66,11 @@ unsafe extern "C" fn trap_handler(f: &mut TrapFrame) {
             return;
         }
         Trap::Exception(raw_exception) => {
+            if matches!(raw_exception, Exception::IllegalInstruction)
+                && super::pmu::recover_register_fault(f)
+            {
+                return;
+            }
             let stval = riscv::register::stval::read();
             CpuException::new(raw_exception, stval)
         }
