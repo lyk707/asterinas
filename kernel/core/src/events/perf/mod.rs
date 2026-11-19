@@ -4,12 +4,14 @@
 
 mod activity;
 mod context;
+mod file;
 mod observation;
 mod remote;
 
 use ostd::pmu::PmuError;
 
 pub use self::context::{EventSpec, Operation, PerfContext, Snapshot, Ticket};
+pub(crate) use self::file::{PerfEventFile, ReadFormat};
 use crate::{prelude::*, thread::Thread};
 
 /// Probes the CPU-local PMU before its timer callbacks begin running.
@@ -27,7 +29,7 @@ fn sync_current() {
     }
 }
 
-fn to_error(error: PmuError) -> Error {
+pub(crate) fn to_error(error: PmuError) -> Error {
     let (errno, message) = match error {
         PmuError::Unsupported => (Errno::EOPNOTSUPP, "no supported hardware PMU"),
         PmuError::UnsupportedEvent => (Errno::EOPNOTSUPP, "PMU event is unavailable"),
