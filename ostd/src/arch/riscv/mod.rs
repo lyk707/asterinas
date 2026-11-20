@@ -11,6 +11,7 @@ pub(crate) mod io;
 pub(crate) mod iommu;
 pub mod irq;
 pub(crate) mod mm;
+pub(crate) mod pmu;
 pub mod power;
 pub(crate) mod serial;
 pub(crate) mod task;

@@ -30,10 +30,8 @@ pub(super) fn sys_sched_getaffinity(
     Ok(SyscallReturn::Return(bytes_written as isize))
 }
 
-// TODO: The manual page of `sched_setaffinity` says that if the thread is not
-// running on the CPU specified in the affinity mask, it would be migrated to
-// one of the CPUs specified in the mask. We currently do not support this
-// feature as the scheduler is not ready for migration yet.
+// A thread already in a runqueue can remain there until it blocks.
+// The scheduler uses the new affinity when selecting a CPU on wakeup.
 pub(super) fn sys_sched_setaffinity(
     tid: Tid,
     cpuset_size: usize,

@@ -87,6 +87,40 @@ The `totalswap` and `freeswap` fields are reported as zero because swap is not s
 For more information,
 see [the man page](https://man7.org/linux/man-pages/man2/sysinfo.2.html).
 
+### `perf_event_open`
+
+On x86-64, `perf_event_open` supports per-thread hardware counting of CPU cycles
+and retired instructions. Pass `pid = 0` for the caller or a positive thread ID
+for another thread. Pass `cpu = -1` to follow the thread across CPUs or specify
+an existing CPU to restrict where counting occurs. Use `group_fd = -1` for a
+standalone event. The caller needs `CAP_PERFMON`
+or `CAP_SYS_ADMIN`. Cross-process attachment also checks access to the target.
+
+```c
+{{#include perf_event_open.scml}}
+```
+
+The version 0 attribute layout is supported. A zero size selects that layout.
+Larger layouts up to a page are accepted if their extension bytes are zero.
+Supported attribute flags are `disabled`, `exclude_user`, `exclude_kernel`,
+`exclude_hv`, `exclude_idle`, `enable_on_exec`, and `exclude_guest`.
+At least one of user and kernel mode must be included. The sample period must
+be zero. `PERF_SAMPLE_IDENTIFIER` is accepted as counting metadata.
+
+Use `read` to obtain the count followed by any requested enabled time, running
+time, and event ID, in that order. The event descriptor supports
+`PERF_EVENT_IOC_ENABLE`, `PERF_EVENT_IOC_DISABLE`, `PERF_EVENT_IOC_RESET`, and
+`PERF_EVENT_IOC_ID`. The first three commands take an argument of zero.
+
+The counting subset supports this invocation of the Linux perf tool.
+
+```sh
+perf stat --no-inherit -e cycles:u,instructions:u -- command
+```
+
+Sampling, inheritance, event groups, and system-wide counting are currently
+unsupported. See [the Linux manual](https://man7.org/linux/man-pages/man2/perf_event_open.2.html).
+
 ## POSIX clocks
 
 ### `clock_gettime`
