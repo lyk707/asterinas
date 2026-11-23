@@ -33,6 +33,10 @@ fn pre_schedule_handler(irq_guard: &DisabledLocalIrqGuard) {
     let Some(task) = Task::current() else {
         return;
     };
+    #[cfg(target_arch = "x86_64")]
+    if let Some(thread) = task.as_thread() {
+        thread.perf().on_schedule_out(irq_guard);
+    }
     let Some(thread_local) = task.as_thread_local() else {
         return;
     };
@@ -58,6 +62,10 @@ fn post_schedule_handler() {
         .and_then(|kernel_thread| kernel_thread.vmar())
     {
         vmar.vm_space().activate();
+    }
+    #[cfg(target_arch = "x86_64")]
+    if let Some(thread) = task.as_thread() {
+        thread.perf().on_schedule_in();
     }
 }
 
@@ -91,6 +99,8 @@ pub(crate) struct Thread {
     cpu_affinity: AtomicCpuSet,
     /// Thread scheduling attribute.
     sched_attr: SchedAttr,
+    #[cfg(target_arch = "x86_64")]
+    perf: Arc<crate::events::perf::PerfContext>,
 }
 
 impl Thread {
@@ -107,6 +117,8 @@ impl Thread {
             is_exited: AtomicBool::new(false),
             cpu_affinity: AtomicCpuSet::new(cpu_affinity),
             sched_attr: SchedAttr::new(sched_policy),
+            #[cfg(target_arch = "x86_64")]
+            perf: Arc::new(crate::events::perf::PerfContext::new()),
         }
     }
 
@@ -135,7 +147,17 @@ impl Thread {
         self.is_exited.load(Ordering::Acquire)
     }
 
+    /// Returns the context that owns this thread's performance events.
+    ///
+    /// Event files can retain the context beyond thread exit to read final counts.
+    #[cfg(target_arch = "x86_64")]
+    pub(crate) fn perf(&self) -> &Arc<crate::events::perf::PerfContext> {
+        &self.perf
+    }
+
     pub(super) fn exit(&self) {
+        #[cfg(target_arch = "x86_64")]
+        self.perf.on_exit();
         self.is_exited.store(true, Ordering::Release);
     }
 

@@ -90,7 +90,7 @@ impl<R: TRights> Credentials<R> {
     /// This method requires the `Write` right.
     #[require(R > Write)]
     pub(crate) fn set_uid(&self, uid: Uid) -> Result<()> {
-        self.0.set_uid(uid)
+        self.with_perf_credential_update(|| self.0.set_uid(uid))
     }
 
     /// Sets the real, effective user IDs as `ruid`, `euid` respectively.
@@ -100,7 +100,7 @@ impl<R: TRights> Credentials<R> {
     /// This method requires the `Write` right.
     #[require(R > Write)]
     pub(crate) fn set_reuid(&self, ruid: Option<Uid>, euid: Option<Uid>) -> Result<()> {
-        self.0.set_reuid(ruid, euid)
+        self.with_perf_credential_update(|| self.0.set_reuid(ruid, euid))
     }
 
     /// Sets the real, effective, saved-set user IDs as `ruid`, `euid`, `suid` respectively.
@@ -115,7 +115,7 @@ impl<R: TRights> Credentials<R> {
         euid: Option<Uid>,
         suid: Option<Uid>,
     ) -> Result<()> {
-        self.0.set_resuid(ruid, euid, suid)
+        self.with_perf_credential_update(|| self.0.set_resuid(ruid, euid, suid))
     }
 
     /// Sets the filesystem user ID as `fsuid` and returns the original filesystem user ID.
@@ -170,7 +170,7 @@ impl<R: TRights> Credentials<R> {
     /// This method requires the `Write` right.
     #[require(R > Write)]
     pub(crate) fn set_gid(&self, gid: Gid) -> Result<()> {
-        self.0.set_gid(gid)
+        self.with_perf_credential_update(|| self.0.set_gid(gid))
     }
 
     /// Sets the real, effective group IDs as `rgid`, `egid` respectively.
@@ -180,7 +180,7 @@ impl<R: TRights> Credentials<R> {
     /// This method requires the `Write` right.
     #[require(R > Write)]
     pub(crate) fn set_regid(&self, rgid: Option<Gid>, egid: Option<Gid>) -> Result<()> {
-        self.0.set_regid(rgid, egid)
+        self.with_perf_credential_update(|| self.0.set_regid(rgid, egid))
     }
 
     /// Sets the real, effective, saved-set group IDs as `rgid`, `egid`, `sgid` respectively.
@@ -195,7 +195,7 @@ impl<R: TRights> Credentials<R> {
         egid: Option<Gid>,
         sgid: Option<Gid>,
     ) -> Result<()> {
-        self.0.set_resgid(rgid, egid, sgid)
+        self.with_perf_credential_update(|| self.0.set_resgid(rgid, egid, sgid))
     }
 
     /// Sets the filesystem group ID as `fsgid` and returns the original filesystem group ID.
@@ -409,6 +409,23 @@ impl<R: TRights> Credentials<R> {
     /// This method requires the `Write` right.
     #[require(R > Write)]
     pub(in crate::process) fn apply_exec_cred(&self, exec_cred: ExecCred) -> Result<()> {
-        self.0.apply_exec_cred(exec_cred)
+        self.with_perf_credential_update(|| self.0.apply_exec_cred(exec_cred))
+    }
+
+    fn with_perf_credential_update<T>(&self, update: impl FnOnce() -> T) -> T {
+        #[cfg(target_arch = "x86_64")]
+        {
+            use crate::{process::posix_thread::AsPosixThread, thread::Thread};
+
+            if let Some(thread) = Thread::current()
+                && let Some(posix_thread) = thread.as_posix_thread()
+            {
+                let credentials = posix_thread.credentials();
+                if Arc::ptr_eq(&self.0, &credentials.0) {
+                    return thread.perf().update_credentials(&credentials, update);
+                }
+            }
+        }
+        update()
     }
 }

@@ -6,6 +6,8 @@ mod event_file;
 mod events;
 mod io_events;
 mod observer;
+#[cfg(target_arch = "x86_64")]
+pub(crate) mod perf;
 mod subject;
 
 pub use self::io_events::IoEvents;
