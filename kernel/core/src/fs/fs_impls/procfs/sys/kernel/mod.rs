@@ -26,6 +26,8 @@ use crate::{
 };
 
 mod cap_last_cap;
+#[cfg(target_arch = "x86_64")]
+mod perf_event_paranoid;
 mod pid_max;
 mod tainted;
 mod uts;
@@ -51,6 +53,12 @@ impl KernelDirOps {
         ("domainname", InodeType::File, DomainnameFileOps::new_inode),
         ("hostname", InodeType::File, HostnameFileOps::new_inode),
         ("osrelease", InodeType::File, OsReleaseFileOps::new_inode),
+        #[cfg(target_arch = "x86_64")]
+        (
+            "perf_event_paranoid",
+            InodeType::File,
+            perf_event_paranoid::PerfEventParanoidFileOps::new_inode,
+        ),
         ("pid_max", InodeType::File, PidMaxFileOps::new_inode),
         ("tainted", InodeType::File, TaintedFileOps::new_inode),
         ("version", InodeType::File, VersionFileOps::new_inode),
